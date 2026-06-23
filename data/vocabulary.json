@@ -9,5 +9,1034 @@
     "Presentation & Reporting",
     "General Business English"
   ],
-  "vocabulary": []
+  "vocabulary": [
+    {
+      "id": "v001",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Could you give us a better price?",
+      "chinese": "能否給我們更優惠的價格？（委婉提出議價）",
+      "example": "Could you give us a better price? We're planning a large order.",
+      "example_zh": "能否給我們更優惠的價格？我們計畫下大量訂單。",
+      "tags": ["negotiation", "pricing", "CH1"]
+    },
+    {
+      "id": "v002",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "We're looking for a win-win solution.",
+      "chinese": "我們希望找到雙贏的解決方案。（建立合作氛圍）",
+      "example": "We're looking for a win-win solution that benefits both parties.",
+      "example_zh": "我們希望找到對雙方都有利的雙贏解決方案。",
+      "tags": ["negotiation", "collaboration", "CH1"]
+    },
+    {
+      "id": "v003",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "That price is a bit above our budget.",
+      "chinese": "那個價格稍微超出我們的預算。（暗示需要降價）",
+      "example": "That price is a bit above our budget. Can we find a middle ground?",
+      "example_zh": "那個價格稍微超出我們的預算。我們能找到折衷方案嗎？",
+      "tags": ["negotiation", "pricing", "CH1"]
+    },
+    {
+      "id": "v004",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Can you offer any volume discount?",
+      "chinese": "可否提供大量採購折扣？（以量議價）",
+      "example": "Can you offer any volume discount if we order more than 500 units?",
+      "example_zh": "如果我們訂購超過 500 件，可否提供大量採購折扣？",
+      "tags": ["negotiation", "discount", "CH1"]
+    },
+    {
+      "id": "v005",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "What's your best offer?",
+      "chinese": "你們最優惠的價格是多少？（直白問底價）",
+      "example": "We've compared several vendors. What's your best offer?",
+      "example_zh": "我們已比較幾家廠商，你們最優惠的價格是多少？",
+      "tags": ["negotiation", "pricing", "CH1"]
+    },
+    {
+      "id": "v006",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Let's meet halfway.",
+      "chinese": "我們各退一步吧。（表示妥協，常用於雙方協商）",
+      "example": "We can't go below 10%, and you need 15%. Let's meet halfway at 12.5%.",
+      "example_zh": "我們不能低於 10%，你們需要 15%。我們各退一步，就 12.5% 吧。",
+      "tags": ["negotiation", "compromise", "CH1"]
+    },
+    {
+      "id": "v007",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "We're under pressure to keep costs down.",
+      "chinese": "我們有壓力要控制成本。（釋放議價需求）",
+      "example": "We're under pressure to keep costs down this quarter, so flexibility on pricing would be appreciated.",
+      "example_zh": "本季我們有壓力要控制成本，若在定價上能有彈性將不勝感激。",
+      "tags": ["negotiation", "cost", "CH1"]
+    },
+    {
+      "id": "v008",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "We'd prefer FOB terms.",
+      "chinese": "我們希望使用 FOB（船上交貨）條款。（談條件時常見）",
+      "example": "We'd prefer FOB terms to simplify our logistics on this end.",
+      "example_zh": "我們希望使用 FOB 條款，以簡化我方的物流作業。",
+      "tags": ["contract", "incoterms", "CH1"]
+    },
+    {
+      "id": "v009",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Lead time is critical for this order.",
+      "chinese": "這張訂單的交期非常關鍵。（強調交期需求）",
+      "example": "Lead time is critical for this order — we need delivery within 4 weeks.",
+      "example_zh": "這張訂單的交期非常關鍵——我們需要在 4 週內收到貨。",
+      "tags": ["negotiation", "lead-time", "CH1"]
+    },
+    {
+      "id": "v010",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "Can you improve the payment terms?",
+      "chinese": "付款條件可以再改善嗎？（例如延長付款期限）",
+      "example": "Can you improve the payment terms? We'd prefer net 60 days.",
+      "example_zh": "付款條件可以再改善嗎？我們希望能有 60 天帳期。",
+      "tags": ["contract", "payment", "CH1"]
+    },
+    {
+      "id": "v011",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "We need to align this with our internal budget.",
+      "chinese": "我們需要與內部預算協調。（為議價提供理由）",
+      "example": "We need to align this with our internal budget before committing.",
+      "example_zh": "我們需要在承諾前先與內部預算協調。",
+      "tags": ["negotiation", "budget", "CH1"]
+    },
+    {
+      "id": "v012",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "We've received more competitive quotes elsewhere.",
+      "chinese": "我們從其他地方得到更有競爭力的報價。（軟性施壓）",
+      "example": "We've received more competitive quotes elsewhere, so we hope you can reconsider.",
+      "example_zh": "我們從其他地方得到更有競爭力的報價，希望您能重新考慮。",
+      "tags": ["negotiation", "pricing", "CH1"]
+    },
+    {
+      "id": "v013",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Let me take this back to my team.",
+      "chinese": "我需要和我們團隊討論一下。（爭取時間，不馬上答應）",
+      "example": "That's an interesting proposal. Let me take this back to my team and get back to you by Friday.",
+      "example_zh": "這是個有趣的提案。讓我帶回去和團隊討論，週五前回覆您。",
+      "tags": ["negotiation", "strategy", "CH1"]
+    },
+    {
+      "id": "v014",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Can you throw in free shipping?",
+      "chinese": "可以包含免運嗎？（加值請求）",
+      "example": "If we confirm the order today, can you throw in free shipping?",
+      "example_zh": "如果我們今天確認訂單，可以包含免運嗎？",
+      "tags": ["negotiation", "added-value", "CH1"]
+    },
+    {
+      "id": "v015",
+      "type": "phrase",
+      "category": "RFQ & Inquiry",
+      "english": "What's your MOQ (minimum order quantity)?",
+      "chinese": "你們的最小訂購量（MOQ）是多少？（基礎談判資訊）",
+      "example": "Before we proceed, what's your MOQ for this product?",
+      "example_zh": "在繼續之前，這項產品你們的最小訂購量是多少？",
+      "tags": ["RFQ", "inquiry", "CH1"]
+    },
+    {
+      "id": "v016",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "We'd like to build a long-term partnership.",
+      "chinese": "我們希望建立長期合作關係。（建立合作意圖）",
+      "example": "We'd like to build a long-term partnership rather than a one-off transaction.",
+      "example_zh": "我們希望建立長期合作關係，而非一次性交易。",
+      "tags": ["vendor-management", "relationship", "CH1"]
+    },
+    {
+      "id": "v017",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Is this price negotiable?",
+      "chinese": "這個價格可以談嗎？（開啟談判話題）",
+      "example": "Is this price negotiable, especially for a bulk order?",
+      "example_zh": "這個價格可以談嗎？特別是大量採購的情況下。",
+      "tags": ["negotiation", "pricing", "CH1"]
+    },
+    {
+      "id": "v018",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "Let's look at the total cost of ownership.",
+      "chinese": "我們來看看整體擁有成本吧。（強調不只是單價）",
+      "example": "Let's look at the total cost of ownership, not just the unit price.",
+      "example_zh": "讓我們看看整體擁有成本，而不只是單價。",
+      "tags": ["negotiation", "cost", "CH1"]
+    },
+    {
+      "id": "v019",
+      "type": "phrase",
+      "category": "RFQ & Inquiry",
+      "english": "Could you provide a sample before finalizing?",
+      "chinese": "能否在確認訂單前提供樣品？（降低風險）",
+      "example": "Could you provide a sample before finalizing the purchase order?",
+      "example_zh": "能否在確認採購訂單前提供樣品？",
+      "tags": ["RFQ", "sample", "CH1"]
+    },
+    {
+      "id": "v020",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "We'll need that in writing.",
+      "chinese": "我們需要書面確認。（確保正式記錄）",
+      "example": "That sounds good. We'll need that in writing before we can proceed.",
+      "example_zh": "聽起來不錯。在繼續之前，我們需要書面確認。",
+      "tags": ["contract", "documentation", "CH1"]
+    },
+    {
+      "id": "v021",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "competitive price",
+      "chinese": "有競爭力的價格（議價時常用）",
+      "example": "We're looking for a more competitive price on this component.",
+      "example_zh": "我們希望這個零件的價格更有競爭力。",
+      "tags": ["negotiation", "collocation", "pricing", "CH1"]
+    },
+    {
+      "id": "v022",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "bulk discount",
+      "chinese": "數量折扣（大量採購時要求的優惠）",
+      "example": "Do you offer a bulk discount for orders over 1,000 units?",
+      "example_zh": "訂購超過 1,000 件是否提供數量折扣？",
+      "tags": ["negotiation", "collocation", "discount", "CH1"]
+    },
+    {
+      "id": "v023",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "long-term partnership",
+      "chinese": "長期合作關係（建立信任基礎）",
+      "example": "We value long-term partnerships with reliable vendors.",
+      "example_zh": "我們重視與可靠供應商的長期合作關係。",
+      "tags": ["vendor-management", "collocation", "relationship", "CH1"]
+    },
+    {
+      "id": "v024",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "payment terms",
+      "chinese": "付款條件（如 30 days credit, LC, TT 等）",
+      "example": "What are your standard payment terms for new customers?",
+      "example_zh": "您們對新客戶的標準付款條件是什麼？",
+      "tags": ["contract", "collocation", "payment", "CH1"]
+    },
+    {
+      "id": "v025",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "delivery schedule",
+      "chinese": "交貨時程（用來談交期安排）",
+      "example": "Please confirm the delivery schedule in the contract.",
+      "example_zh": "請在合約中確認交貨時程。",
+      "tags": ["contract", "collocation", "delivery", "CH1"]
+    },
+    {
+      "id": "v026",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "cost reduction",
+      "chinese": "成本降低（談判中談降價時的常用詞）",
+      "example": "We need to discuss cost reduction options to stay within our budget.",
+      "example_zh": "我們需要討論成本降低方案以維持在預算內。",
+      "tags": ["negotiation", "collocation", "cost", "CH1"]
+    },
+    {
+      "id": "v027",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "value-added services",
+      "chinese": "附加價值服務（提升交易吸引力，如免費運送、安裝等）",
+      "example": "What value-added services do you offer with this package?",
+      "example_zh": "這個方案您們提供哪些附加價值服務？",
+      "tags": ["vendor-management", "collocation", "CH1"]
+    },
+    {
+      "id": "v028",
+      "type": "phrase",
+      "category": "Specification",
+      "english": "quality assurance",
+      "chinese": "品質保證（確保產品符合標準）",
+      "example": "Our quality assurance process includes incoming inspection and random sampling.",
+      "example_zh": "我們的品質保證流程包含進料檢驗和隨機抽樣。",
+      "tags": ["specification", "collocation", "quality", "CH1"]
+    },
+    {
+      "id": "v029",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "supply chain",
+      "chinese": "供應鏈（討論交貨、來源、延遲風險時常用）",
+      "example": "The pandemic severely disrupted the global supply chain.",
+      "example_zh": "疫情嚴重打亂了全球供應鏈。",
+      "tags": ["vendor-management", "collocation", "CH1"]
+    },
+    {
+      "id": "v030",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "lead time",
+      "chinese": "生產／交貨時間（shorter lead time 是常見談判需求）",
+      "example": "Can you shorten the lead time to 3 weeks for urgent orders?",
+      "example_zh": "急單的交貨時間可以縮短至 3 週嗎？",
+      "tags": ["negotiation", "collocation", "delivery", "CH1"]
+    },
+    {
+      "id": "v031",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "unit cost",
+      "chinese": "單位成本（與 total cost 相對）",
+      "example": "The unit cost decreases significantly with larger order quantities.",
+      "example_zh": "隨著訂購數量增加，單位成本會明顯降低。",
+      "tags": ["negotiation", "collocation", "cost", "CH1"]
+    },
+    {
+      "id": "v032",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "market price",
+      "chinese": "市場價格（用來對比對方報價是否合理）",
+      "example": "Your quote is above market price. Can you reconsider?",
+      "example_zh": "您的報價高於市場行情，能否重新考慮？",
+      "tags": ["negotiation", "collocation", "pricing", "CH1"]
+    },
+    {
+      "id": "v033",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "contract terms",
+      "chinese": "合約條款（談判協議中的關鍵部分）",
+      "example": "Let's finalize the contract terms before signing.",
+      "example_zh": "在簽約前，讓我們先敲定合約條款。",
+      "tags": ["contract", "collocation", "CH1"]
+    },
+    {
+      "id": "v034",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "negotiating power",
+      "chinese": "談判籌碼（如 \"We have more negotiating power due to bulk orders.\"）",
+      "example": "We have more negotiating power now that we're ordering in bulk.",
+      "example_zh": "現在我們大量採購，談判籌碼更多了。",
+      "tags": ["negotiation", "collocation", "strategy", "CH1"]
+    },
+    {
+      "id": "v035",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "price adjustment",
+      "chinese": "價格調整（如因原料上漲或匯率變動而重新報價）",
+      "example": "We'd like to discuss a price adjustment due to fluctuations in raw material costs.",
+      "example_zh": "由於原料成本波動，我們想討論價格調整事宜。",
+      "tags": ["contract", "collocation", "pricing", "CH1"]
+    },
+    {
+      "id": "v036",
+      "type": "phrase",
+      "category": "RFQ & Inquiry",
+      "english": "purchase order",
+      "chinese": "採購訂單（PO，正式下單用語）",
+      "example": "We'll send you the purchase order once the terms are finalized.",
+      "example_zh": "條款確認後，我們將發送採購訂單給您。",
+      "tags": ["RFQ", "collocation", "CH1"]
+    },
+    {
+      "id": "v037",
+      "type": "phrase",
+      "category": "Contract & Terms",
+      "english": "delivery terms",
+      "chinese": "交貨條件（如 FOB、CIF、DAP 等國際貿易條規）",
+      "example": "Please clarify the delivery terms — are we going with FOB or CIF?",
+      "example_zh": "請說明交貨條件——我們使用 FOB 還是 CIF？",
+      "tags": ["contract", "collocation", "incoterms", "CH1"]
+    },
+    {
+      "id": "v038",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "after-sales service",
+      "chinese": "售後服務（高價產品必談項目）",
+      "example": "What does your after-sales service package include?",
+      "example_zh": "您們的售後服務方案包含哪些內容？",
+      "tags": ["vendor-management", "collocation", "CH1"]
+    },
+    {
+      "id": "v039",
+      "type": "phrase",
+      "category": "Specification",
+      "english": "product specification",
+      "chinese": "產品規格（對品質、功能、材質的要求）",
+      "example": "Please review the product specification document we sent.",
+      "example_zh": "請審閱我們發送的產品規格文件。",
+      "tags": ["specification", "collocation", "CH1"]
+    },
+    {
+      "id": "v040",
+      "type": "phrase",
+      "category": "Vendor Management",
+      "english": "business relationship",
+      "chinese": "商業關係（談判過程中常用以表達長期合作意願）",
+      "example": "We hope to maintain a strong business relationship with your company.",
+      "example_zh": "我們希望與貴公司維持良好的商業關係。",
+      "tags": ["vendor-management", "collocation", "CH1"]
+    },
+    {
+      "id": "v041",
+      "type": "word",
+      "category": "General Business English",
+      "english": "setback",
+      "phonetic": "/ˈset.bæk/",
+      "chinese": "挫折；障礙（something that delays or prevents a process from developing）",
+      "example": "There has been a slight/temporary setback in our plans.",
+      "example_zh": "我們的計劃遭到了一點／暫時的挫敗。",
+      "tags": ["vocabulary", "CH1"]
+    },
+    {
+      "id": "v042",
+      "type": "word",
+      "category": "Presentation & Reporting",
+      "english": "milestone",
+      "chinese": "里程碑；重要的階段（a significant stage in a project）",
+      "example": "We've achieved three key milestones so far.",
+      "example_zh": "我們目前已完成三個重要的進度。",
+      "tags": ["vocabulary", "project", "CH1"]
+    },
+    {
+      "id": "v043",
+      "type": "word",
+      "category": "Presentation & Reporting",
+      "english": "deliverable",
+      "chinese": "可交付成果；預定目標（a result that must be produced by a project）",
+      "example": "We're reviewing our timeline to ensure quality deliverables.",
+      "example_zh": "我們正在重新評估進度，確保每個交付成果的品質。",
+      "tags": ["vocabulary", "project", "CH1"]
+    },
+    {
+      "id": "v044",
+      "type": "word",
+      "category": "Presentation & Reporting",
+      "english": "timeline",
+      "chinese": "時間表；時間軸（a schedule showing when things will happen）",
+      "example": "Here's where we stand on the project timeline.",
+      "example_zh": "這是目前的專案進度。",
+      "tags": ["vocabulary", "project", "CH1"]
+    },
+    {
+      "id": "v045",
+      "type": "word",
+      "category": "General Business English",
+      "english": "conglomerate",
+      "phonetic": "/kənˈɡlɑː.mɚ.ət/",
+      "chinese": "聯合大企業；企業集團（a company that owns several smaller businesses with different products/services）",
+      "example": "Far Eastern Group is a diversified conglomerate with operations across ten industries.",
+      "example_zh": "遠東集團是一個多角化的企業集團，業務橫跨十個產業。",
+      "tags": ["vocabulary", "corporate", "CH1"]
+    },
+    {
+      "id": "v046",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "strike the right balance between cost and efficiency",
+      "chinese": "在成本與效能之間取得平衡（strike a balance = 達到兩者之間的理想狀態）",
+      "example": "Our goal is to help the company strike the right balance between cost and efficiency.",
+      "example_zh": "我們的目標是協助公司在成本與效能之間取得最佳平衡。",
+      "tags": ["phrase", "strategy", "CH1"]
+    },
+    {
+      "id": "v047",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "specializing in procurement",
+      "chinese": "專精於採購（procurement 是比 purchase 更專業的正式採購用語）",
+      "example": "I've been specializing in procurement, particularly in engineering contracts.",
+      "example_zh": "我一直專精於採購領域，特別是工程發包。",
+      "tags": ["phrase", "procurement", "CH1"]
+    },
+    {
+      "id": "v048",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "equipment sourcing",
+      "chinese": "設備採購（sourcing = 尋源，強調供應商選擇與價格評估）",
+      "example": "My expertise lies in mechanical, electrical, and equipment sourcing.",
+      "example_zh": "我的專長在於機電設備採購。",
+      "tags": ["phrase", "procurement", "CH1"]
+    },
+    {
+      "id": "v049",
+      "type": "word",
+      "category": "General Business English",
+      "english": "differentiate",
+      "phonetic": "/dɪf.əˈren.ʃi.eɪt/",
+      "chinese": "區別；分清；辨別（to show or find the difference between things）",
+      "example": "How can we differentiate ourselves from competitors?",
+      "example_zh": "我們如何有別於競爭對手？",
+      "tags": ["vocabulary", "strategy", "CH2"]
+    },
+    {
+      "id": "v050",
+      "type": "word",
+      "category": "General Business English",
+      "english": "implement",
+      "phonetic": "/ˈɪm.plə.ment/",
+      "chinese": "實施；貫徹（to start using a plan or system）",
+      "example": "What strategies can we implement to improve efficiency?",
+      "example_zh": "我們可以實施哪些策略來提升效率？",
+      "tags": ["vocabulary", "strategy", "CH2"]
+    },
+    {
+      "id": "v051",
+      "type": "word",
+      "category": "General Business English",
+      "english": "fine-tune",
+      "phonetic": "/ˌfaɪnˈtuːn/",
+      "chinese": "對…進行微調（to make very small changes to make something work as well as possible）",
+      "example": "I feel like the proposal might need some fine-tuning before we move ahead.",
+      "example_zh": "我覺得這份提案在我們推進前可能需要微調一下。",
+      "tags": ["vocabulary", "improvement", "CH2"]
+    },
+    {
+      "id": "v052",
+      "type": "word",
+      "category": "General Business English",
+      "english": "tweak",
+      "phonetic": "/twiːk/",
+      "chinese": "稍稍改進（to change something slightly to make it more correct, effective, or suitable）",
+      "example": "We could improve the system if we just tweak a few settings.",
+      "example_zh": "如果我們稍微調整幾個設定，系統就能有所改善。",
+      "tags": ["vocabulary", "improvement", "CH2"]
+    },
+    {
+      "id": "v053",
+      "type": "word",
+      "category": "General Business English",
+      "english": "scalability",
+      "phonetic": "/ˌskeɪ.ləˈbɪl.ə.t̬i/",
+      "chinese": "可擴增的能力（the ability of a business or system to grow larger）",
+      "example": "Scalability is a key factor in our choice of supplier.",
+      "example_zh": "可擴增性是我們選擇供應商的關鍵因素。",
+      "tags": ["vocabulary", "strategy", "CH2"]
+    },
+    {
+      "id": "v054",
+      "type": "word",
+      "category": "General Business English",
+      "english": "integrate",
+      "phonetic": "/ˈɪn.t̬ə.ɡreɪt/",
+      "chinese": "使合併；使成為一體（to combine two or more things in order to become more effective）",
+      "example": "Can we integrate efforts with the engineering team to speed this up?",
+      "example_zh": "我們能否與工程團隊整合力量來加快進度？",
+      "tags": ["vocabulary", "collaboration", "CH2"]
+    },
+    {
+      "id": "v055",
+      "type": "word",
+      "category": "General Business English",
+      "english": "complement",
+      "phonetic": "/ˈkɑːm.plə.ment/",
+      "chinese": "補充；補足；使完善（to make something else seem better when combined with it）",
+      "example": "Let's make sure our work complements the team's overall strategy.",
+      "example_zh": "讓我們確保我們的工作能補充團隊的整體策略。",
+      "tags": ["vocabulary", "collaboration", "CH2"]
+    },
+    {
+      "id": "v056",
+      "type": "word",
+      "category": "General Business English",
+      "english": "disruption",
+      "phonetic": "/dɪsˈrʌp.ʃən/",
+      "chinese": "顛覆；中斷（the action of completely changing the traditional way an industry operates）",
+      "example": "Supply chain disruption caused significant delays in delivery.",
+      "example_zh": "供應鏈中斷導致交貨大幅延誤。",
+      "tags": ["vocabulary", "risk", "CH2"]
+    },
+    {
+      "id": "v057",
+      "type": "word",
+      "category": "General Business English",
+      "english": "fluctuation",
+      "phonetic": "/ˌflʌk.tʃuˈeɪ.ʃən/",
+      "chinese": "波動；漲落；起伏不定（a change, especially between one level and another）",
+      "example": "We should account for fluctuations in the exchange rate when budgeting.",
+      "example_zh": "制定預算時，我們應該將匯率波動考慮在內。",
+      "tags": ["vocabulary", "finance", "risk", "CH2"]
+    },
+    {
+      "id": "v058",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "account for",
+      "chinese": "（三個用法）解釋原因 / 占比 / 將…考慮在內",
+      "example": "We should account for potential delays when setting the timeline.",
+      "example_zh": "制定時間表時，我們應該將可能的延誤考慮在內。",
+      "tags": ["phrase", "multipurpose", "CH2"]
+    },
+    {
+      "id": "v059",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "fallback option / fallback plan",
+      "chinese": "應變方案（A plan that can be used if other plans do not succeed）",
+      "example": "Do we have a fallback option if the vendor can't deliver on time?",
+      "example_zh": "如果供應商無法準時交貨，我們有應變方案嗎？",
+      "tags": ["phrase", "risk", "CH2"]
+    },
+    {
+      "id": "v060",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "walk someone through something",
+      "chinese": "耐心地給（某人）示範……；詳細地教授（某人）……",
+      "example": "Could you walk me through the specification requirements for this project?",
+      "example_zh": "您能為我詳細說明這個專案的規格要求嗎？",
+      "tags": ["phrase", "communication", "CH1"]
+    },
+    {
+      "id": "v061",
+      "type": "word",
+      "category": "General Business English",
+      "english": "mitigate",
+      "phonetic": "/ˈmɪt̬.ə.ɡeɪt/",
+      "chinese": "使緩和；減輕（危害等）（to make something less harmful, unpleasant, or bad）",
+      "example": "Could we explore alternative strategies to mitigate this risk?",
+      "example_zh": "我們能否探討替代策略來降低這個風險？",
+      "tags": ["vocabulary", "risk", "CH3"]
+    },
+    {
+      "id": "v062",
+      "type": "word",
+      "category": "General Business English",
+      "english": "merit",
+      "phonetic": "/ˈmer.ɪt/",
+      "chinese": "優點；價值；功績（the quality of being good and deserving praise）",
+      "example": "This proposal has merit, but let's review the cost implications first.",
+      "example_zh": "這個提案有其價值，但讓我們先審查成本影響。",
+      "tags": ["vocabulary", "evaluation", "CH3"]
+    },
+    {
+      "id": "v063",
+      "type": "word",
+      "category": "General Business English",
+      "english": "metrics",
+      "phonetic": "/ˈmetrɪks/",
+      "chinese": "衡量標準；指標（a set of numbers that give information about a particular process）",
+      "example": "Do you have any metrics on the current rejection rate?",
+      "example_zh": "您有任何關於目前退貨率的指標資料嗎？",
+      "tags": ["vocabulary", "data", "CH3"]
+    },
+    {
+      "id": "v064",
+      "type": "word",
+      "category": "General Business English",
+      "english": "perspective",
+      "phonetic": "/pɚˈspek.tɪv/",
+      "chinese": "角度；觀點（a particular way of considering something）",
+      "example": "What's your perspective on the proposed delivery schedule?",
+      "example_zh": "您對於擬定的交貨時程有何看法？",
+      "tags": ["vocabulary", "communication", "CH3"]
+    },
+    {
+      "id": "v065",
+      "type": "word",
+      "category": "General Business English",
+      "english": "compensation",
+      "phonetic": "/ˌkɑːm.penˈseɪ.ʃən/",
+      "chinese": "（1）報酬（薪資＋福利的總和）；（2）賠償金",
+      "example": "Annual compensation for our team includes salary and performance bonus.",
+      "example_zh": "我們團隊的年度報酬包括工資以及績效獎金。",
+      "tags": ["vocabulary", "HR", "finance", "CH3"]
+    },
+    {
+      "id": "v066",
+      "type": "word",
+      "category": "General Business English",
+      "english": "proposition",
+      "phonetic": "/ˌprɑː.pəˈzɪʃ.ən/",
+      "chinese": "提議；建議（an offer or suggestion, usually in business）",
+      "example": "He wrote to us regarding a business proposition he thought might interest us.",
+      "example_zh": "他寫信給我們，提出一項他認為我們會感興趣的提案。",
+      "tags": ["vocabulary", "negotiation", "CH3"]
+    },
+    {
+      "id": "v067",
+      "type": "word",
+      "category": "General Business English",
+      "english": "constraint",
+      "phonetic": "/kənˈstreɪnt/",
+      "chinese": "限制；束縛（something that controls what you do by keeping you within limits）",
+      "example": "Financial constraints are preventing us from approving this request.",
+      "example_zh": "財務上的限制讓我們無法批准這項請求。",
+      "tags": ["vocabulary", "budget", "CH3"]
+    },
+    {
+      "id": "v068",
+      "type": "word",
+      "category": "General Business English",
+      "english": "elaborate",
+      "phonetic": "/iˈlæb.ə.reɪt/",
+      "chinese": "（動詞）詳盡說明；闡述 / （形容詞）詳盡的；精心設計的",
+      "example": "Could you elaborate on the technical specifications of this product?",
+      "example_zh": "您能詳細說明這項產品的技術規格嗎？",
+      "tags": ["vocabulary", "communication", "CH3"]
+    },
+    {
+      "id": "v069",
+      "type": "word",
+      "category": "General Business English",
+      "english": "oversight",
+      "phonetic": "/ˈoʊ.vɚ.saɪt/",
+      "chinese": "（1）失察；疏忽（a mistake due to failure to notice something）；（2）監督；監察",
+      "example": "The pricing error was simply an oversight on our part.",
+      "example_zh": "定價錯誤只是我方一時疏忽。",
+      "tags": ["vocabulary", "communication", "CH3"]
+    },
+    {
+      "id": "v070",
+      "type": "word",
+      "category": "General Business English",
+      "english": "pivotal",
+      "phonetic": "/ˈpɪv.ə.t̬əl/",
+      "chinese": "關鍵性的；核心的（central and important）",
+      "example": "His advice was pivotal to the success of this procurement project.",
+      "example_zh": "他的建議對這個採購專案的成功起了決定性的作用。",
+      "tags": ["vocabulary", "strategy", "CH4"]
+    },
+    {
+      "id": "v071",
+      "type": "word",
+      "category": "General Business English",
+      "english": "hectic",
+      "phonetic": "/ˈhek.tɪk/",
+      "chinese": "繁忙的；忙碌的（full of activity, or very busy and fast）",
+      "example": "It's been a hectic week with back-to-back vendor meetings.",
+      "example_zh": "這週連續不斷地與廠商開會，忙得不可開交。",
+      "tags": ["vocabulary", "workplace", "CH4"]
+    },
+    {
+      "id": "v072",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "back to back (meetings)",
+      "chinese": "連續不斷的（一個接著一個，中間沒有空檔）",
+      "example": "I've had back-to-back meetings all morning, so let's keep this brief.",
+      "example_zh": "我整個早上都是連續不斷的會議，所以我們盡量簡短一點。",
+      "tags": ["phrase", "workplace", "CH4"]
+    },
+    {
+      "id": "v073",
+      "type": "word",
+      "category": "General Business English",
+      "english": "rapport",
+      "phonetic": "/ræpˈɔːr/",
+      "chinese": "融洽；和睦的關係（a good understanding of someone and ability to communicate well）",
+      "example": "Building rapport with vendors is essential for long-term partnerships.",
+      "example_zh": "與供應商建立融洽關係對長期合作至關重要。",
+      "tags": ["vocabulary", "relationship", "CH4"]
+    },
+    {
+      "id": "v074",
+      "type": "word",
+      "category": "General Business English",
+      "english": "escalate",
+      "phonetic": "/ˈes.kə.leɪt/",
+      "chinese": "（使）增強；（使）升級；（使）加劇（to become or make something greater or more serious）",
+      "example": "I've escalated your request to the manager, and you'll hear back by end of day.",
+      "example_zh": "我已將您的請求升級至主管，您今天下班前會收到回覆。",
+      "tags": ["vocabulary", "communication", "CH4"]
+    },
+    {
+      "id": "v075",
+      "type": "word",
+      "category": "General Business English",
+      "english": "expedite",
+      "phonetic": "/ˈek.spə.daɪt/",
+      "chinese": "迅速完成；促進；加快（to make something happen more quickly）",
+      "example": "Could you expedite the shipment? We have an urgent deadline.",
+      "example_zh": "您能加快出貨嗎？我們有緊急的截止日期。",
+      "tags": ["vocabulary", "procurement", "CH4"]
+    },
+    {
+      "id": "v076",
+      "type": "word",
+      "category": "General Business English",
+      "english": "verify",
+      "phonetic": "/ˈver.ə.faɪ/",
+      "chinese": "證明；證實（to prove that something exists or is true, or to make certain something is correct）",
+      "example": "Please verify the product specifications against the sample you received.",
+      "example_zh": "請根據您收到的樣品確認產品規格。",
+      "tags": ["vocabulary", "quality", "CH4"]
+    },
+    {
+      "id": "v077",
+      "type": "word",
+      "category": "General Business English",
+      "english": "align",
+      "phonetic": "/əˈlaɪn/",
+      "chinese": "使一致；使協調（to agree with a person or organization and work with them）",
+      "example": "We need to align our procurement strategy with the company's budget goals.",
+      "example_zh": "我們需要讓採購策略與公司的預算目標保持一致。",
+      "tags": ["vocabulary", "strategy", "CH3"]
+    },
+    {
+      "id": "v078",
+      "type": "word",
+      "category": "General Business English",
+      "english": "engage in",
+      "chinese": "參加；參與（to take part in something）",
+      "example": "We're happy to engage in further discussions about the contract terms.",
+      "example_zh": "我們很樂意進一步討論合約條款。",
+      "tags": ["phrase", "communication", "CH4"]
+    },
+    {
+      "id": "v079",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "flag it / flag something",
+      "chinese": "標記；提醒注意（to mark or highlight something for attention or follow-up）",
+      "example": "Please flag it if you notice any discrepancy in the invoice.",
+      "example_zh": "如果您發現發票有任何差異，請提醒注意。",
+      "tags": ["phrase", "communication", "CH3"]
+    },
+    {
+      "id": "v080",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "wrap something up",
+      "chinese": "完成；結束某事（to finish something）",
+      "example": "Let's wrap up the negotiation today so we can issue the PO tomorrow.",
+      "example_zh": "讓我們今天完成談判，這樣明天就能發出採購單。",
+      "tags": ["phrase", "communication", "CH3"]
+    },
+    {
+      "id": "v081",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "In what ways can we ___ to improve our ___?",
+      "chinese": "我們有哪些方式可以___以改善___？（策略制定的開放式提問）",
+      "example": "In what ways can we streamline the procurement process to reduce costs?",
+      "example_zh": "我們有哪些方式可以精簡採購流程以降低成本？",
+      "tags": ["sentence-pattern", "strategy", "CH2"]
+    },
+    {
+      "id": "v082",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "How can we differentiate ourselves from competitors to ___?",
+      "chinese": "我們如何有別於競爭對手以___？（競爭策略提問）",
+      "example": "How can we differentiate ourselves from competitors to attract better vendors?",
+      "example_zh": "我們如何有別於競爭對手以吸引更好的供應商？",
+      "tags": ["sentence-pattern", "strategy", "CH2"]
+    },
+    {
+      "id": "v083",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "I feel like ___ might need some fine-tuning before we move ahead.",
+      "chinese": "我覺得___在我們推進前可能需要微調一下。（委婉提出優化建議）",
+      "example": "I feel like the pricing structure might need some fine-tuning before we move ahead.",
+      "example_zh": "我覺得定價結構在我們推進前可能需要微調一下。",
+      "tags": ["sentence-pattern", "suggestion", "CH2"]
+    },
+    {
+      "id": "v084",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "___ is a key factor in ___.",
+      "chinese": "___是___的關鍵因素。（強調重要性的句型）",
+      "example": "Lead time is a key factor in our vendor selection process.",
+      "example_zh": "交貨時間是我們供應商選擇流程的關鍵因素。",
+      "tags": ["sentence-pattern", "strategy", "CH2"]
+    },
+    {
+      "id": "v085",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "What's your take on ___?",
+      "chinese": "您對___有什麼看法？（口語、較informal的問法，比 \"thoughts on\" 更自然）",
+      "example": "What's your take on the vendor's revised proposal?",
+      "example_zh": "您對供應商修訂後的提案有什麼看法？",
+      "tags": ["sentence-pattern", "discussion", "CH2"]
+    },
+    {
+      "id": "v086",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "Let's align on / sync about ___.",
+      "chinese": "我們來針對___對齊一下。（用來確認雙方在同一理解上）",
+      "example": "Let's align on the delivery schedule before sending the PO.",
+      "example_zh": "在發出採購單前，我們先針對交貨時程對齊一下。",
+      "tags": ["sentence-pattern", "collaboration", "CH2"]
+    },
+    {
+      "id": "v087",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "We should account for ___ when planning ___.",
+      "chinese": "在規劃___時，我們應該將___考慮在內。（風險管理句型）",
+      "example": "We should account for potential customs delays when planning the delivery timeline.",
+      "example_zh": "在規劃交貨時間表時，我們應該將潛在的清關延誤考慮在內。",
+      "tags": ["sentence-pattern", "risk", "CH2"]
+    },
+    {
+      "id": "v088",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "We should have a fallback option if ___.",
+      "chinese": "如果___，我們應該有備案。（應變規劃句型）",
+      "example": "We should have a fallback option if the primary vendor cannot meet the deadline.",
+      "example_zh": "如果主要供應商無法在期限內交貨，我們應該有備案。",
+      "tags": ["sentence-pattern", "risk", "CH2"]
+    },
+    {
+      "id": "v089",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "We can't afford to overlook ___.",
+      "chinese": "我們不能忽視___。（強調某事的重要性）",
+      "example": "We can't afford to overlook quality issues at this stage of the project.",
+      "example_zh": "在專案的這個階段，我們不能忽視品質問題。",
+      "tags": ["sentence-pattern", "emphasis", "CH2"]
+    },
+    {
+      "id": "v090",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "Is there a way we can streamline ___?",
+      "chinese": "有辦法精簡___嗎？（提出優化流程的提問）",
+      "example": "Is there a way we can streamline the approval process for urgent purchases?",
+      "example_zh": "有辦法精簡緊急採購的審批流程嗎？",
+      "tags": ["sentence-pattern", "optimization", "CH2"]
+    },
+    {
+      "id": "v091",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "Are we on track? Where do we stand on ___?",
+      "chinese": "我們進度如何？我們在___上目前的狀況是什麼？（狀態確認句型）",
+      "example": "Are we on track? Where do we stand on the vendor evaluation?",
+      "example_zh": "我們進度如何？供應商評估目前的狀況是什麼？",
+      "tags": ["sentence-pattern", "status-update", "CH2"]
+    },
+    {
+      "id": "v092",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "One challenge we're facing is ___.",
+      "chinese": "我們面臨的一個挑戰是___。（提出問題的專業表達方式）",
+      "example": "One challenge we're facing is the supplier's long lead time for custom parts.",
+      "example_zh": "我們面臨的一個挑戰是供應商在客製零件上的交貨時間較長。",
+      "tags": ["sentence-pattern", "problem-solving", "CH2"]
+    },
+    {
+      "id": "v093",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "Could we explore alternative strategies to mitigate ___?",
+      "chinese": "我們能否探討替代策略來降低___？（表達反對意見並提出解方）",
+      "example": "Could we explore alternative strategies to mitigate the risk of single-source procurement?",
+      "example_zh": "我們能否探討替代策略來降低單一來源採購的風險？",
+      "tags": ["sentence-pattern", "risk", "suggestion", "CH3"]
+    },
+    {
+      "id": "v094",
+      "type": "sentence_pattern",
+      "category": "Presentation & Reporting",
+      "english": "To make sure we are aligned, let's set up a quick call to go over this in detail.",
+      "chinese": "為了確保我們的立場一致，讓我們安排一個快速通話來詳細討論這件事。（消除誤會句型）",
+      "example": "To make sure we are aligned on pricing, let's set up a quick call to go over this in detail.",
+      "example_zh": "為了確保我們對定價的理解一致，讓我們安排一個快速通話來詳細討論。",
+      "tags": ["sentence-pattern", "alignment", "CH3"]
+    },
+    {
+      "id": "v095",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "arrive at (a decision / an agreement)",
+      "chinese": "達成（決定/協議）（to reach an agreement about something）",
+      "example": "We argued about it for hours and eventually arrived at a decision.",
+      "example_zh": "我們辯論了好幾個小時，最後終於作出決定。",
+      "tags": ["phrase", "negotiation", "CH3"]
+    },
+    {
+      "id": "v096",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "competitive pricing",
+      "chinese": "具競爭力的定價策略（市場上相對有吸引力的價格水準）",
+      "example": "Our competitive pricing has helped us win several contracts this year.",
+      "example_zh": "我們具競爭力的定價策略幫助我們今年贏得了數個合約。",
+      "tags": ["phrase", "pricing", "strategy", "CH1"]
+    },
+    {
+      "id": "v097",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "price elasticity",
+      "phonetic": "/ˌi.læsˈtɪs.ə.t̬i/",
+      "chinese": "價格彈性（需求因價格改變而變化的程度）",
+      "example": "Understanding price elasticity helps us set the right negotiation strategy.",
+      "example_zh": "了解價格彈性有助於我們制定正確的談判策略。",
+      "tags": ["phrase", "economics", "CH1"]
+    },
+    {
+      "id": "v098",
+      "type": "phrase",
+      "category": "Negotiation",
+      "english": "market positioning",
+      "chinese": "市場定位（品牌或產品在市場中相對於競爭對手的位置）",
+      "example": "Our market positioning as a premium buyer gives us leverage in negotiations.",
+      "example_zh": "我們作為高端買家的市場定位在談判中賦予我們籌碼。",
+      "tags": ["phrase", "strategy", "CH1"]
+    },
+    {
+      "id": "v099",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "revisit the timeline",
+      "chinese": "重新審視時程（重新評估原定計畫是否仍可行）",
+      "example": "Given the supply shortage, we may need to revisit the timeline.",
+      "example_zh": "鑑於供應短缺，我們可能需要重新審視時程。",
+      "tags": ["phrase", "project", "CH3"]
+    },
+    {
+      "id": "v100",
+      "type": "phrase",
+      "category": "General Business English",
+      "english": "We are committed to ___.",
+      "chinese": "我們致力於___。（表達堅定承諾的正式句型）",
+      "example": "We are committed to delivering quality products on time, every time.",
+      "example_zh": "我們致力於每次準時交付高品質產品。",
+      "tags": ["phrase", "commitment", "CH2"]
+    }
+  ]
 }
