@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>採購英文複習</title>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #fff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --orange: #f97316;
+      --red: #ef4444;
+      --purple: #8b5cf6;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px 16px 48px;
+    }
+
+    /* ── Screens ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Header ── */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0 20px;
+    }
+    .header-title { font-size: 1.15rem; font-weight: 700; }
+    .header-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .header-actions { display: flex; gap: 8px; }
+
+    /* ── Stats ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+    .stat-box { background: var(--card); border-radius: var(--radius); padding: 14px 10px; text-align: center; box-shadow: var(--shadow); }
+    .stat-num { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+    .stat-new .stat-num { color: var(--accent); }
+    .stat-due .stat-num { color: var(--orange); }
+    .stat-total .stat-num { color: var(--green); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      border: none; border-radius: 10px; font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; padding: 12px 16px;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:hover { opacity: .86; }
+    .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+    .btn-block { display: flex; width: 100%; margin-bottom: 10px; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-ghost { background: var(--card); color: var(--muted); border: 1px solid var(--border); font-size: .82rem; padding: 8px 12px; border-radius: 8px; }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 6px; border-radius: 8px; line-height: 1; color: var(--muted); transition: color .15s; }
+    .btn-icon:hover { color: var(--accent); }
+
+    /* ── Pills ── */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .pill {
+      padding: 5px 12px; border-radius: 20px; font-size: .76rem; font-weight: 500;
+      border: 1px solid var(--border); background: var(--card); cursor: pointer;
+      transition: all .15s; user-select: none;
+    }
+    .pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Panel ── */
+    .panel { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 14px; }
+    .panel-label { font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+
+    /* ── Import area ── */
+    .import-area {
+      border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px;
+      text-align: center; cursor: pointer; transition: border-color .15s; margin-bottom: 10px;
+    }
+    .import-area:hover { border-color: var(--accent); }
+    #file-input { display: none; }
+
+    /* ── Back nav ── */
+    .back-btn { background: none; border: none; font-size: .85rem; color: var(--muted); cursor: pointer; padding: 4px 0 16px; display: block; }
+    .back-btn:hover { color: var(--text); }
+
+    /* ── Progress ── */
+    .progress-label { text-align: center; font-size: .78rem; color: var(--muted); margin-bottom: 6px; }
+    .progress-track { background: var(--border); border-radius: 4px; height: 5px; margin-bottom: 20px; overflow: hidden; }
+    .progress-fill { background: var(--accent); height: 100%; border-radius: 4px; transition: width .35s ease; }
+
+    /* ── Flashcard ── */
+    .fc-wrap {
+      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 26px 22px; min-height: 200px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; margin-bottom: 16px;
+      cursor: pointer; position: relative; user-select: none;
+    }
+    .fc-wrap:active { box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+
+    /* type badge (top-left) */
+    .fc-type-badge {
+      position: absolute; top: 12px; left: 14px;
+      font-size: .66rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .type-word     { background: #dbeafe; color: #1d4ed8; }
+    .type-phrase   { background: #f3e8ff; color: #6d28d9; }
+    .type-pattern  { background: #fef3c7; color: #92400e; }
+
+    /* speaker button (top-right) */
+    .fc-speaker {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; font-size: 1.1rem; cursor: pointer;
+      color: var(--muted); padding: 4px; border-radius: 6px; line-height: 1;
+      transition: color .15s;
+    }
+    .fc-speaker:hover { color: var(--accent); }
+
+    .fc-cat { font-size: .7rem; color: var(--muted); margin-bottom: 10px; margin-top: 4px; }
+    .fc-english { font-size: 1.55rem; font-weight: 800; line-height: 1.3; margin-bottom: 6px; }
+    .fc-english.pattern { font-size: 1.2rem; text-align: left; width: 100%; }
+    .fc-english .blank { color: var(--accent); border-bottom: 2px solid var(--accent); padding: 0 2px; }
+    .fc-abbr { font-size: .88rem; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+    .fc-hint { font-size: .78rem; color: var(--muted); margin-top: 16px; }
+
+    /* Card back */
+    .fc-answer { display: none; width: 100%; }
+    .fc-zh { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+    .fc-def-en { font-size: .82rem; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
+    .fc-example-row { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 6px; text-align: left; width: 100%; }
+    .fc-example-text { font-size: .82rem; color: var(--muted); font-style: italic; line-height: 1.6; flex: 1; }
+    .fc-notes { font-size: .78rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; text-align: left; width: 100%; line-height: 1.55; }
+    .fc-notes-label { font-weight: 600; font-style: normal; }
+
+    /* ── Rating ── */
+    .rating-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 8px; }
+    .btn-again { background: var(--red);    color: #fff; flex-direction: column; padding: 12px 6px; font-size: .82rem; }
+    .btn-hard  { background: var(--orange); color: #fff; flex-direction: column; padding: 12px 6px; font-size: .82rem; }
+    .btn-good  { background: var(--accent); color: #fff; flex-direction: column; padding: 12px 6px; font-size: .82rem; }
+    .btn-easy  { background: var(--green);  color: #fff; flex-direction: column; padding: 12px 6px; font-size: .82rem; }
+    .btn-sub { font-size: .67rem; opacity: .85; margin-top: 2px; font-weight: 400; }
+    .interval-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; text-align: center; margin-bottom: 14px; }
+    .interval-row span { font-size: .67rem; color: var(--muted); }
+    .key-hint { text-align: center; font-size: .7rem; color: var(--border); margin-bottom: 6px; }
+
+    /* ── Complete ── */
+    .complete-box { text-align: center; padding: 40px 10px; }
+    .complete-emoji { font-size: 3rem; margin-bottom: 14px; }
+    .complete-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .complete-sub { font-size: .88rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── Browse ── */
+    .search-input {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+      border-radius: 10px; font-size: .92rem; background: var(--card); outline: none; margin-bottom: 12px;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .vocab-count { font-size: .78rem; color: var(--muted); margin-bottom: 10px; }
+    .vcard { background: var(--card); border-radius: 10px; padding: 13px 15px; margin-bottom: 8px; box-shadow: var(--shadow); cursor: pointer; }
+    .vcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .vcard-en { font-weight: 600; font-size: .95rem; }
+    .vcard-zh { font-size: .83rem; color: var(--muted); margin-top: 2px; }
+    .vcard-tag { font-size: .67rem; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+    .vcard-detail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .vcard.open .vcard-detail { display: block; }
+    .vcard-detail-line { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+    .vcard-detail-line.ex { font-style: italic; }
+    .vcard-detail-line.notes { margin-top: 4px; }
+
+    /* ── Add form ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block; }
+    .form-label span { font-weight: 400; color: var(--muted); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: .92rem; font-family: inherit;
+      background: var(--card); outline: none; color: var(--text);
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+    .form-hint { font-size: .74rem; color: var(--muted); margin-top: 4px; }
+    .type-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .type-opt { border: 2px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all .15s; }
+    .type-opt.sel { border-color: var(--accent); background: #eff6ff; }
+    .type-opt .t-icon { font-size: 1.2rem; margin-bottom: 4px; }
+    .type-opt .t-label { font-size: .78rem; font-weight: 600; }
+    .type-opt .t-sub { font-size: .68rem; color: var(--muted); }
+
+    /* ── Empty ── */
+    .empty-msg { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-msg-icon { font-size: 2.2rem; margin-bottom: 10px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(72px);
+      background: #1e293b; color: #fff; padding: 11px 20px; border-radius: 10px;
+      font-size: .85rem; pointer-events: none; transition: transform .28s ease;
+      z-index: 9999; white-space: nowrap; max-width: 90vw; text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ══ HOME ══════════════════════════════════════════════════════════════ -->
+<div id="s-home" class="screen active">
+  <div class="header">
+    <div>
+      <div class="header-title">採購英文複習</div>
+      <div class="header-sub">Procurement Business English</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="go('s-add')">＋ 新增</button>
+      <button class="btn btn-ghost" onclick="go('s-browse')">瀏覽</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box stat-new"><div class="stat-num" id="h-new">0</div><div class="stat-label">新卡片</div></div>
+    <div class="stat-box stat-due"><div class="stat-num" id="h-due">0</div><div class="stat-label">待複習</div></div>
+    <div class="stat-box stat-total"><div class="stat-num" id="h-total">0</div><div class="stat-label">總詞彙</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">篩選分類（不選 = 全部）</div>
+    <div class="pill-row" id="h-filters"><span style="font-size:.78rem;color:var(--muted)">匯入或新增詞彙後可篩選</span></div>
+  </div>
+
+  <button class="btn btn-primary btn-block" id="h-start" onclick="startStudy()">開始複習</button>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+    <div class="import-area" style="margin-bottom:0" onclick="document.getElementById('file-input').click()">
+      <div style="font-size:1.2rem;margin-bottom:4px">📂</div>
+      <div style="font-size:.82rem;font-weight:600">匯入詞彙庫</div>
+      <div style="font-size:.7rem;color:var(--muted)">選取 vocabulary.json</div>
+    </div>
+    <div class="import-area" style="margin-bottom:0" onclick="exportVocab()">
+      <div style="font-size:1.2rem;margin-bottom:4px">⬇️</div>
+      <div style="font-size:.82rem;font-weight:600">匯出詞彙庫</div>
+      <div style="font-size:.7rem;color:var(--muted)">下載 vocabulary.json</div>
+    </div>
+  </div>
+  <input type="file" id="file-input" accept=".json" onchange="importVocab(event)">
+  <div id="sync-status" style="text-align:center;font-size:.7rem;color:var(--muted);padding:6px 0"></div>
+</div>
+
+
+<!-- ══ STUDY ══════════════════════════════════════════════════════════════ -->
+<div id="s-study" class="screen">
+  <button class="back-btn" onclick="go('s-home')">← 返回首頁</button>
+
+  <div class="progress-label" id="prog-label"></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+
+  <!-- Flashcard -->
+  <div class="fc-wrap" id="fc" onclick="handleFcClick(event)">
+    <div class="fc-type-badge" id="fc-type-badge"></div>
+    <button class="fc-speaker" id="fc-spk-front" onclick="event.stopPropagation();speakFront()" title="朗讀">🔊</button>
+
+    <!-- Front content -->
+    <div id="fc-front-content">
+      <div class="fc-cat" id="fc-cat"></div>
+      <div class="fc-english" id="fc-en"></div>
+      <div class="fc-abbr" id="fc-abbr"></div>
+      <div class="fc-hint" id="fc-hint"></div>
+    </div>
+
+    <!-- Back content (hidden until flipped) -->
+    <div class="fc-answer" id="fc-answer">
+      <div class="fc-cat" id="fc-cat-b"></div>
+      <div class="fc-zh" id="fc-zh"></div>
+      <div class="fc-def-en" id="fc-def-en" style="display:none"></div>
+      <div class="fc-example-row" id="fc-ex-row" style="display:none">
+        <div class="fc-example-text" id="fc-ex-text"></div>
+        <button class="btn-icon" onclick="event.stopPropagation();speakExample()" title="朗讀例句">🔊</button>
+      </div>
+      <div class="fc-notes" id="fc-notes" style="display:none">
+        <span class="fc-notes-label">📌 </span><span id="fc-notes-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating buttons -->
+  <div id="rating-zone" style="display:none">
+    <div class="rating-row">
+      <button class="btn btn-again" onclick="rate(1)">再複習<span class="btn-sub">Again</span></button>
+      <button class="btn btn-hard"  onclick="rate(2)">困難<span class="btn-sub">Hard</span></button>
+      <button class="btn btn-good"  onclick="rate(4)">良好<span class="btn-sub">Good</span></button>
+      <button class="btn btn-easy"  onclick="rate(5)">輕鬆<span class="btn-sub">Easy</span></button>
+    </div>
+    <div class="interval-row">
+      <span id="iv-1" style="color:var(--red)"></span>
+      <span id="iv-2" style="color:var(--orange)"></span>
+      <span id="iv-4" style="color:var(--accent)"></span>
+      <span id="iv-5" style="color:var(--green)"></span>
+    </div>
+    <div class="key-hint">鍵盤：Space 翻牌 · 1 再複習 · 2 困難 · 3 良好 · 4 輕鬆</div>
+  </div>
+
+  <!-- Session complete -->
+  <div class="complete-box" id="complete-box" style="display:none">
+    <div class="complete-emoji">🎉</div>
+    <div class="complete-title">今天完成了！</div>
+    <div class="complete-sub" id="complete-msg"></div>
+    <button class="btn btn-primary" onclick="go('s-home')">返回首頁</button>
+  </div>
+</div>
+
+
+<!-- ══ BROWSE ═════════════════════════════════════════════════════════════ -->
+<div id="s-browse" class="screen">
+  <button class="back-btn" onclick="go('s-home')">← 返回首頁</button>
+  <h2 style="font-size:1.05rem;margin-bottom:14px">詞彙庫</h2>
+  <input type="text" class="search-input" id="b-search" placeholder="搜尋英文、中文、縮寫…" oninput="renderBrowse()">
+  <div class="pill-row" id="b-type-filters"></div>
+  <div class="pill-row" id="b-filters"></div>
+  <div class="vocab-count" id="b-count"></div>
+  <div id="b-list"></div>
+</div>
+
+
+<!-- ══ ADD WORD ═══════════════════════════════════════════════════════════ -->
+<div id="s-add" class="screen">
+  <button class="back-btn" onclick="go('s-home')">← 返回首頁</button>
+  <h2 style="font-size:1.05rem;margin-bottom:18px">新增詞彙</h2>
+
+  <!-- Type selector -->
+  <div class="form-group">
+    <label class="form-label">類型</label>
+    <div class="type-row">
+      <div class="type-opt sel" id="type-word" onclick="selectType('word')">
+        <div class="t-icon">📖</div>
+        <div class="t-label">單字</div>
+        <div class="t-sub">Word</div>
+      </div>
+      <div class="type-opt" id="type-phrase" onclick="selectType('phrase')">
+        <div class="t-icon">💬</div>
+        <div class="t-label">片語</div>
+        <div class="t-sub">Phrase</div>
+      </div>
+      <div class="type-opt" id="type-pattern" onclick="selectType('sentence_pattern')">
+        <div class="t-icon">📝</div>
+        <div class="t-label">句型</div>
+        <div class="t-sub">Pattern</div>
+      </div>
+    </div>
+    <div class="form-hint" id="type-hint">單個英文字彙，例：vendor, procurement, waiver</div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-en">英文 <span>（句型請用 ___ 標示空格）</span></label>
+    <input type="text" class="form-input" id="f-en" placeholder='例：Request for Quotation 或 We would like to request ___ for ___'>
+  </div>
+
+  <div class="form-group" id="abbr-group">
+    <label class="form-label" for="f-abbr">縮寫 <span>（選填）</span></label>
+    <input type="text" class="form-input" id="f-abbr" placeholder="例：RFQ、MOQ、PO">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-zh">中文</label>
+    <input type="text" class="form-input" id="f-zh" placeholder="例：詢價單、最低訂購量">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-def">英文定義 <span>（選填）</span></label>
+    <input type="text" class="form-input" id="f-def" placeholder="例：A document sent to suppliers asking for pricing">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-cat">分類</label>
+    <select class="form-select" id="f-cat"></select>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-ex">例句 <span>（選填）</span></label>
+    <textarea class="form-textarea" id="f-ex" placeholder="例：We issued an RFQ to three qualified vendors for the chiller equipment."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-notes">備注 <span>（選填，使用場景、易混淆詞）</span></label>
+    <textarea class="form-textarea" id="f-notes" style="min-height:60px" placeholder="例：RFQ focuses on price; RFP is broader (includes technical proposals)"></textarea>
+  </div>
+
+  <button class="btn btn-success btn-block" onclick="submitAdd()">✓ 儲存詞彙</button>
+  <button class="btn btn-ghost btn-block" onclick="go('s-home')">取消</button>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+// ══ Config ═══════════════════════════════════════════════════════════════
+// 上線後填入 GitHub raw URL，App 開啟時自動同步詞彙庫
+const CONFIG = {
+  vocabUrl: ''
+  // 範例：'https://raw.githubusercontent.com/evan0803/procurement-english/main/data/vocabulary.json'
+};
+
+// ══ Storage ══════════════════════════════════════════════════════════════
+
+const KEY = 'prcmt_vocab_v1';
+const CATS = [
+  'RFQ & Inquiry', 'Negotiation', 'Contract & Terms',
+  'Specification', 'Vendor Management', 'Presentation & Reporting',
+  'General Business English'
+];
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || { cards: [] }; }
+  catch { return { cards: [] }; }
+}
+function save(d) {
+  d.saved = new Date().toISOString();
+  localStorage.setItem(KEY, JSON.stringify(d));
+}
+
+// ══ SM-2 ═════════════════════════════════════════════════════════════════
+
+function sm2(c, q) {
+  if (q <= 2) {
+    c.sm2.reps = 0;
+    c.sm2.interval = q === 2 ? 1 : 0;
+  } else {
+    const r = c.sm2.reps;
+    if (r === 0)      c.sm2.interval = 1;
+    else if (r === 1) c.sm2.interval = 6;
+    else              c.sm2.interval = Math.round(c.sm2.interval * c.sm2.ef);
+    if (q === 5)      c.sm2.interval = Math.round(c.sm2.interval * 1.3);
+    c.sm2.reps++;
+    c.sm2.ef = Math.max(1.3, c.sm2.ef + 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+  }
+  const next = new Date();
+  next.setDate(next.getDate() + Math.max(1, c.sm2.interval));
+  c.sm2.next = next.toISOString().slice(0, 10);
+  return c;
+}
+
+function previewDays(c, q) {
+  const t = JSON.parse(JSON.stringify(c));
+  sm2(t, q);
+  const d = t.sm2.interval;
+  if (!d || d <= 0) return '<1天';
+  if (d === 1) return '明天';
+  if (d < 7)  return d + '天';
+  if (d < 30) return Math.round(d / 7) + '週';
+  return Math.round(d / 30) + '個月';
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function isNew(c)   { return !c.sm2?.next; }
+function isDue(c)   { return c.sm2?.next && c.sm2.next <= todayStr(); }
+function isDueOrNew(c) { return isNew(c) || isDue(c); }
+function defSm2()   { return { reps: 0, interval: 0, ef: 2.5, next: null }; }
+
+// ══ Speech ════════════════════════════════════════════════════════════════
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) { toast('此瀏覽器不支援語音功能'); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.88;
+  speechSynthesis.speak(u);
+}
+
+function speakFront() {
+  const c = S.queue[S.idx];
+  if (c) speak(c.english || '');
+}
+
+function speakExample() {
+  const c = S.queue[S.idx];
+  if (c && c.example_sentence) speak(c.example_sentence);
+}
+
+// ══ Import ════════════════════════════════════════════════════════════════
+
+function importVocab(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const src = JSON.parse(ev.target.result);
+      const list = src.vocabulary;
+      if (!Array.isArray(list)) throw new Error('缺少 vocabulary 陣列');
+      const d = load();
+      const map = {};
+      d.cards.forEach(c => { map[c.id] = c; });
+      let added = 0, updated = 0;
+      list.forEach((v, i) => {
+        const id = v.id || 'auto_' + i + '_' + (v.english || '').replace(/\W+/g, '_').toLowerCase().slice(0, 30);
+        if (map[id]) {
+          const ex = map[id];
+          Object.assign(ex, v);
+          ex.id = id;
+          if (!ex.sm2) ex.sm2 = defSm2();
+          updated++;
+        } else {
+          d.cards.push({ ...v, id, sm2: v.sm2 || defSm2() });
+          added++;
+        }
+      });
+      save(d);
+      toast('匯入完成：新增 ' + added + ' 筆，更新 ' + updated + ' 筆');
+      refreshHome();
+    } catch (err) { toast('匯入失敗：' + err.message); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+}
+
+// ══ Add form ══════════════════════════════════════════════════════════════
+
+let addType = 'word';
+
+function selectType(t) {
+  addType = t;
+  ['word', 'phrase', 'pattern'].forEach(k => {
+    document.getElementById('type-' + k).classList.remove('sel');
+  });
+  document.getElementById('type-' + (t === 'sentence_pattern' ? 'pattern' : t)).classList.add('sel');
+  const hints = {
+    word: '單個英文字彙，例：vendor, procurement, waiver',
+    phrase: '多字片語，例：request for quotation, lead time',
+    sentence_pattern: '句型模板，用 ___ 標示空格，例：We would like to request ___ for ___.'
+  };
+  document.getElementById('type-hint').textContent = hints[t];
+  document.getElementById('abbr-group').style.display = t === 'sentence_pattern' ? 'none' : '';
+}
+
+function populateCatSelect() {
+  const sel = document.getElementById('f-cat');
+  const d = load();
+  const extra = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
+  const all = [...new Set([...CATS, ...extra])];
+  sel.innerHTML = all.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
+}
+
+function submitAdd() {
+  const en = document.getElementById('f-en').value.trim();
+  const zh = document.getElementById('f-zh').value.trim();
+  if (!en || !zh) { toast('英文與中文為必填'); return; }
+  const d = load();
+  const id = 'manual_' + Date.now();
+  const card = {
+    id,
+    type: addType,
+    english: en,
+    abbreviation: document.getElementById('f-abbr').value.trim() || undefined,
+    chinese: zh,
+    definition_en: document.getElementById('f-def').value.trim() || undefined,
+    category: document.getElementById('f-cat').value,
+    example_sentence: document.getElementById('f-ex').value.trim() || undefined,
+    notes: document.getElementById('f-notes').value.trim() || undefined,
+    sm2: defSm2()
+  };
+  // Remove undefined fields
+  Object.keys(card).forEach(k => card[k] === undefined && delete card[k]);
+  d.cards.push(card);
+  save(d);
+  toast('✓ 已新增：' + en);
+  // Clear form
+  ['f-en','f-abbr','f-zh','f-def','f-ex','f-notes'].forEach(id => document.getElementById(id).value = '');
+  go('s-home');
+}
+
+// ══ Session ═══════════════════════════════════════════════════════════════
+
+let S = { queue: [], idx: 0, reviewed: 0, flipped: false, cats: [] };
+
+function startStudy() {
+  const d = load();
+  if (!d.cards.length) { toast('請先新增或匯入詞彙'); return; }
+  let pool = S.cats.length ? d.cards.filter(c => S.cats.includes(c.category)) : d.cards;
+  const queue = pool.filter(isDueOrNew).sort(() => Math.random() - 0.5);
+  if (!queue.length) { toast('今天沒有待複習的卡片 🎉'); return; }
+  S = { queue, idx: 0, reviewed: 0, flipped: false, cats: S.cats };
+  go('s-study');
+  showCard();
+}
+
+const TYPE_LABELS = { word: 'WORD', phrase: 'PHRASE', sentence_pattern: 'PATTERN' };
+const TYPE_CLASSES = { word: 'type-word', phrase: 'type-phrase', sentence_pattern: 'type-pattern' };
+const HINTS = {
+  word: '點擊翻牌 →',
+  phrase: '點擊翻牌 →',
+  sentence_pattern: '口說看看 — 再翻牌 →'
+};
+
+function showCard() {
+  const { queue, idx } = S;
+  // Show/hide chrome
+  document.getElementById('fc').style.display = '';
+  document.getElementById('rating-zone').style.display = 'none';
+  document.getElementById('complete-box').style.display = 'none';
+  document.querySelector('.progress-track').style.display = '';
+  document.querySelector('.progress-label').style.display = '';
+
+  if (idx >= queue.length) {
+    document.getElementById('fc').style.display = 'none';
+    document.querySelector('.progress-track').style.display = 'none';
+    document.querySelector('.progress-label').style.display = 'none';
+    document.getElementById('complete-box').style.display = 'block';
+    document.getElementById('complete-msg').textContent = '共複習了 ' + S.reviewed + ' 張卡片，繼續保持！';
+    return;
+  }
+
+  const c = queue[idx];
+  const pct = (idx / queue.length * 100).toFixed(0);
+  document.getElementById('prog-label').textContent = (idx + 1) + ' / ' + queue.length;
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  // Type badge
+  const badge = document.getElementById('fc-type-badge');
+  badge.textContent = TYPE_LABELS[c.type] || c.type?.toUpperCase() || 'WORD';
+  badge.className = 'fc-type-badge ' + (TYPE_CLASSES[c.type] || 'type-word');
+
+  // Front
+  document.getElementById('fc-cat').textContent = c.category || '';
+  const enEl = document.getElementById('fc-en');
+  enEl.className = 'fc-english' + (c.type === 'sentence_pattern' ? ' pattern' : '');
+  enEl.innerHTML = esc(c.english || '').replace(/___/g, '<span class="blank">___</span>');
+  document.getElementById('fc-abbr').textContent = c.abbreviation || '';
+  document.getElementById('fc-hint').textContent = HINTS[c.type] || HINTS.word;
+  document.getElementById('fc-front-content').style.display = '';
+
+  // Back (hidden)
+  document.getElementById('fc-answer').style.display = 'none';
+  document.getElementById('fc-cat-b').textContent = c.category || '';
+  document.getElementById('fc-zh').textContent = c.chinese || '';
+
+  const defEl = document.getElementById('fc-def-en');
+  if (c.definition_en) { defEl.textContent = c.definition_en; defEl.style.display = ''; }
+  else defEl.style.display = 'none';
+
+  const exRow = document.getElementById('fc-ex-row');
+  if (c.example_sentence) {
+    document.getElementById('fc-ex-text').textContent = '"' + c.example_sentence + '"';
+    exRow.style.display = '';
+  } else exRow.style.display = 'none';
+
+  const notesEl = document.getElementById('fc-notes');
+  if (c.notes) {
+    document.getElementById('fc-notes-text').textContent = c.notes;
+    notesEl.style.display = '';
+  } else notesEl.style.display = 'none';
+
+  S.flipped = false;
+}
+
+function handleFcClick(e) {
+  // Ignore clicks on buttons inside the card
+  if (e.target.tagName === 'BUTTON') return;
+  flipCard();
+}
+
+function flipCard() {
+  if (S.flipped) return;
+  S.flipped = true;
+  const c = S.queue[S.idx];
+  document.getElementById('fc-front-content').style.display = 'none';
+  document.getElementById('fc-answer').style.display = '';
+  document.getElementById('rating-zone').style.display = 'block';
+  // Update interval previews
+  document.getElementById('iv-1').textContent = previewDays(c, 1);
+  document.getElementById('iv-2').textContent = previewDays(c, 2);
+  document.getElementById('iv-4').textContent = previewDays(c, 4);
+  document.getElementById('iv-5').textContent = previewDays(c, 5);
+}
+
+function rate(q) {
+  const d = load();
+  const c = S.queue[S.idx];
+  const i = d.cards.findIndex(x => x.id === c.id);
+  if (i !== -1) { d.cards[i] = sm2(d.cards[i], q); c.sm2 = d.cards[i].sm2; }
+  save(d);
+  S.reviewed++;
+  S.idx++;
+  showCard();
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('s-study').classList.contains('active')) return;
+  if (document.getElementById('s-add').classList.contains('active')) return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); return; }
+  if (!S.flipped) return;
+  if (e.key === '1') rate(1);
+  if (e.key === '2') rate(2);
+  if (e.key === '3') rate(4);
+  if (e.key === '4') rate(5);
+});
+
+// ══ Browse ════════════════════════════════════════════════════════════════
+
+let bCat = 'all', bType = 'all';
+
+function renderBrowse() {
+  const d = load();
+  const q = (document.getElementById('b-search')?.value || '').toLowerCase();
+  const cats = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
+
+  // Type filter
+  const tf = document.getElementById('b-type-filters');
+  tf.innerHTML = '';
+  [['all','全部'],['word','單字'],['phrase','片語'],['sentence_pattern','句型']].forEach(([v,l]) => {
+    makePill(tf, l, bType === v, () => { bType = v; renderBrowse(); });
+  });
+
+  // Category filter
+  const fp = document.getElementById('b-filters');
+  fp.innerHTML = '';
+  makePill(fp, '全部分類', bCat === 'all', () => { bCat = 'all'; renderBrowse(); });
+  cats.forEach(cat => makePill(fp, cat, bCat === cat, () => { bCat = cat; renderBrowse(); }));
+
+  let list = d.cards;
+  if (bType !== 'all') list = list.filter(c => c.type === bType);
+  if (bCat !== 'all') list = list.filter(c => c.category === bCat);
+  if (q) list = list.filter(c =>
+    (c.english || '').toLowerCase().includes(q) ||
+    (c.chinese || '').toLowerCase().includes(q) ||
+    (c.abbreviation || '').toLowerCase().includes(q)
+  );
+
+  document.getElementById('b-count').textContent = list.length + ' 筆詞彙';
+  const el = document.getElementById('b-list');
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-msg"><div class="empty-msg-icon">' +
+      (d.cards.length ? '🔍' : '📚') + '</div><div>' +
+      (d.cards.length ? '找不到符合的詞彙' : '尚無詞彙，請先新增或匯入') + '</div></div>';
+    return;
+  }
+
+  const typeLabel = { word: '單字', phrase: '片語', sentence_pattern: '句型' };
+
+  el.innerHTML = list.map(c => {
+    const abbr = c.abbreviation ? ' (' + esc(c.abbreviation) + ')' : '';
+    const enDisplay = c.type === 'sentence_pattern'
+      ? esc(c.english || '').replace(/___/g, '<u>___</u>')
+      : esc(c.english || '');
+    let detail = '';
+    if (c.definition_en) detail += '<div class="vcard-detail-line">' + esc(c.definition_en) + '</div>';
+    if (c.example_sentence) detail += '<div class="vcard-detail-line ex">"' + esc(c.example_sentence) + '"</div>';
+    if (c.notes) detail += '<div class="vcard-detail-line notes">📌 ' + esc(c.notes) + '</div>';
+    return '<div class="vcard" onclick="this.classList.toggle(\'open\')">' +
+      '<div class="vcard-top"><div>' +
+        '<div class="vcard-en">' + enDisplay + '<span style="color:var(--accent);font-size:.82em">' + abbr + '</span></div>' +
+        '<div class="vcard-zh">' + esc(c.chinese || '') + (c.type ? ' <span style="color:var(--muted);font-size:.75em">· ' + (typeLabel[c.type] || c.type) + '</span>' : '') + '</div>' +
+      '</div><div class="vcard-tag">' + esc(c.category || '') + '</div></div>' +
+      (detail ? '<div class="vcard-detail">' + detail + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+// ══ Home ══════════════════════════════════════════════════════════════════
+
+function refreshHome() {
+  const d = load();
+  let pool = S.cats.length ? d.cards.filter(c => S.cats.includes(c.category)) : d.cards;
+  const newN = pool.filter(isNew).length;
+  const dueN = pool.filter(isDue).length;
+  document.getElementById('h-new').textContent = newN;
+  document.getElementById('h-due').textContent = dueN;
+  document.getElementById('h-total').textContent = d.cards.length;
+  const total = newN + dueN;
+  const btn = document.getElementById('h-start');
+  btn.textContent = total ? '開始複習（' + total + ' 張）' : '今天已完成 🎉';
+  btn.disabled = !total;
+
+  const fp = document.getElementById('h-filters');
+  const allCats = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
+  if (!allCats.length) {
+    fp.innerHTML = '<span style="font-size:.78rem;color:var(--muted)">新增或匯入詞彙後可篩選</span>';
+    return;
+  }
+  fp.innerHTML = '';
+  allCats.forEach(cat => {
+    makePill(fp, cat, S.cats.includes(cat), () => {
+      const i = S.cats.indexOf(cat);
+      i >= 0 ? S.cats.splice(i, 1) : S.cats.push(cat);
+      refreshHome();
+    });
+  });
+}
+
+// ══ Navigation ════════════════════════════════════════════════════════════
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 's-home')   refreshHome();
+  if (id === 's-browse') renderBrowse();
+  if (id === 's-add')    { addType = 'word'; selectType('word'); populateCatSelect(); }
+}
+
+// ══ Helpers ═══════════════════════════════════════════════════════════════
+
+function makePill(parent, label, active, fn) {
+  const p = document.createElement('div');
+  p.className = 'pill' + (active ? ' on' : '');
+  p.textContent = label;
+  p.onclick = fn;
+  parent.appendChild(p);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer;
+function toast(msg, ms = 2800) {
+  clearTimeout(_toastTimer);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  _toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ══ Auto Sync ════════════════════════════════════════════════════════════
+
+async function autoSync() {
+  const el = document.getElementById('sync-status');
+  if (!CONFIG.vocabUrl) {
+    el.textContent = '☁️ 自動同步：未設定（上線後填入 GitHub URL）';
+    return;
+  }
+  el.textContent = '⏳ 同步中…';
+  try {
+    const r = await fetch(CONFIG.vocabUrl + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const src = await r.json();
+    const list = src.vocabulary || [];
+    const d = load();
+    const map = {};
+    d.cards.forEach(c => { map[c.id] = c; });
+    let added = 0;
+    list.forEach((v, i) => {
+      const id = v.id || 'sync_' + i + '_' + (v.english || '').replace(/\W+/g, '_').toLowerCase().slice(0, 30);
+      if (!map[id]) { d.cards.push({ ...v, id, sm2: defSm2() }); added++; }
+      else { const ex = map[id]; Object.assign(ex, v); ex.id = id; }
+    });
+    save(d);
+    const now = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+    el.textContent = '✅ 已同步' + (added ? '（新增 ' + added + ' 筆）' : '') + ' · ' + now;
+    refreshHome();
+  } catch (e) {
+    el.textContent = '⚠️ 同步失敗，使用本機資料';
+  }
+}
+
+// ══ Export ════════════════════════════════════════════════════════════════
+
+function exportVocab() {
+  const d = load();
+  if (!d.cards.length) { toast('目前沒有詞彙可匯出'); return; }
+  const out = {
+    version: '1.1',
+    exported: new Date().toISOString().slice(0, 10),
+    categories: CATS,
+    vocabulary: d.cards.map(c => {
+      const { sm2, ...rest } = c;   // 移除 SM-2 狀態，不放進 GitHub
+      return rest;
+    })
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'vocabulary.json'; a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ 已下載 vocabulary.json（' + out.vocabulary.length + ' 筆）');
+}
+
+// ══ Init ══════════════════════════════════════════════════════════════════
+
+refreshHome();
+autoSync();
+</script>
+</body>
+</html>
