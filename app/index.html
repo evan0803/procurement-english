@@ -137,7 +137,9 @@
     /* Card back */
     .fc-answer { display: none; width: 100%; }
     .fc-zh { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+    .fc-phonetic { font-size: .9rem; color: var(--muted); margin-bottom: 6px; letter-spacing: .03em; }
     .fc-def-en { font-size: .82rem; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
+    .fc-example-zh { font-size: .78rem; color: var(--muted); margin-top: 4px; line-height: 1.5; }
     .fc-example-row { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 6px; text-align: left; width: 100%; }
     .fc-example-text { font-size: .82rem; color: var(--muted); font-style: italic; line-height: 1.6; flex: 1; }
     .fc-notes { font-size: .78rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; text-align: left; width: 100%; line-height: 1.55; }
@@ -281,9 +283,13 @@
     <div class="fc-answer" id="fc-answer">
       <div class="fc-cat" id="fc-cat-b"></div>
       <div class="fc-zh" id="fc-zh"></div>
+      <div class="fc-phonetic" id="fc-phonetic" style="display:none"></div>
       <div class="fc-def-en" id="fc-def-en" style="display:none"></div>
       <div class="fc-example-row" id="fc-ex-row" style="display:none">
-        <div class="fc-example-text" id="fc-ex-text"></div>
+        <div>
+          <div class="fc-example-text" id="fc-ex-text"></div>
+          <div class="fc-example-zh" id="fc-ex-zh" style="display:none"></div>
+        </div>
         <button class="btn-icon" onclick="event.stopPropagation();speakExample()" title="朗讀例句">🔊</button>
       </div>
       <div class="fc-notes" id="fc-notes" style="display:none">
@@ -484,7 +490,7 @@ function speakFront() {
 
 function speakExample() {
   const c = S.queue[S.idx];
-  if (c && c.example_sentence) speak(c.example_sentence);
+  if (c) speak(c.example_sentence || c.example || '');
 }
 
 // ══ Import ════════════════════════════════════════════════════════════════
@@ -644,13 +650,21 @@ function showCard() {
   document.getElementById('fc-cat-b').textContent = c.category || '';
   document.getElementById('fc-zh').textContent = c.chinese || '';
 
+  const phonEl = document.getElementById('fc-phonetic');
+  if (c.phonetic) { phonEl.textContent = c.phonetic; phonEl.style.display = ''; }
+  else phonEl.style.display = 'none';
+
   const defEl = document.getElementById('fc-def-en');
   if (c.definition_en) { defEl.textContent = c.definition_en; defEl.style.display = ''; }
   else defEl.style.display = 'none';
 
+  const exSentence = c.example_sentence || c.example;
   const exRow = document.getElementById('fc-ex-row');
-  if (c.example_sentence) {
-    document.getElementById('fc-ex-text').textContent = '"' + c.example_sentence + '"';
+  if (exSentence) {
+    document.getElementById('fc-ex-text').textContent = '"' + exSentence + '"';
+    const exZhEl = document.getElementById('fc-ex-zh');
+    if (c.example_zh) { exZhEl.textContent = c.example_zh; exZhEl.style.display = ''; }
+    else exZhEl.style.display = 'none';
     exRow.style.display = '';
   } else exRow.style.display = 'none';
 
@@ -755,7 +769,9 @@ function renderBrowse() {
       : esc(c.english || '');
     let detail = '';
     if (c.definition_en) detail += '<div class="vcard-detail-line">' + esc(c.definition_en) + '</div>';
-    if (c.example_sentence) detail += '<div class="vcard-detail-line ex">"' + esc(c.example_sentence) + '"</div>';
+    const exS = c.example_sentence || c.example;
+    if (exS) detail += '<div class="vcard-detail-line ex">"' + esc(exS) + '"</div>';
+    if (c.example_zh) detail += '<div class="vcard-detail-line notes">' + esc(c.example_zh) + '</div>';
     if (c.notes) detail += '<div class="vcard-detail-line notes">📌 ' + esc(c.notes) + '</div>';
     return '<div class="vcard" onclick="this.classList.toggle(\'open\')">' +
       '<div class="vcard-top"><div>' +
