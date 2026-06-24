@@ -725,7 +725,7 @@ function flipCard() {
   S.flipped = true;
   const c = S.queue[S.idx];
   document.getElementById('fc-front-content').style.display = 'none';
-  document.getElementById('fc-answer').style.display = '';
+  document.getElementById('fc-answer').style.display = 'block';
   document.getElementById('rating-zone').style.display = 'block';
   // Update interval previews
   document.getElementById('iv-1').textContent = previewDays(c, 1);
