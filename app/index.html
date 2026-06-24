@@ -410,28 +410,81 @@
 
 
 <script>
-// ══ Config ═══════════════════════════════════════════════════════════════
-// 上線後填入 GitHub raw URL，App 開啟時自動同步詞彙庫
-const CONFIG = {
-  vocabUrl: 'https://raw.githubusercontent.com/evan0803/procurement-english/main/data/vocabulary.json'
-};
+// ══ Supabase Config ═══════════════════════════════════════════════════════
+const SB_URL  = 'https://idomnpkciupehnpthmgx.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb21ucGtjaXVwZWhucHRobWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDkwMzQsImV4cCI6MjA5MTgyNTAzNH0.Qd442vBkacTggppaNzzG1BzAkGpMP2slMozp1QNaJZQ';
+const USER_ID = 'evan';
 
-// ══ Storage ══════════════════════════════════════════════════════════════
+// ══ In-memory store ════════════════════════════════════════════════════════
+const DB = { cards: [], loaded: false };
 
-const KEY = 'prcmt_vocab_v1';
-const CATS = [
-  'RFQ & Inquiry', 'Negotiation', 'Contract & Terms',
-  'Specification', 'Vendor Management', 'Presentation & Reporting',
-  'General Business English'
-];
-
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || { cards: [] }; }
-  catch { return { cards: [] }; }
+// ══ SM-2 localStorage cache (offline fallback) ════════════════════════════
+const SM2_KEY = 'prcmt_sm2_v2';
+let sm2Cache = {};
+function loadSm2Cache() {
+  try { return JSON.parse(localStorage.getItem(SM2_KEY)) || {}; } catch { return {}; }
 }
-function save(d) {
-  d.saved = new Date().toISOString();
-  localStorage.setItem(KEY, JSON.stringify(d));
+function saveSm2Cache() {
+  try { localStorage.setItem(SM2_KEY, JSON.stringify(sm2Cache)); } catch {}
+}
+
+// ══ Supabase REST helper ══════════════════════════════════════════════════
+async function sb(path, opts = {}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', Accept: 'application/json',
+      ...(opts.headers || {})
+    }
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const t = await res.text();
+  return t ? JSON.parse(t) : [];
+}
+
+// ══ Supabase: Load vocabulary + SM-2 progress ════════════════════════════
+async function loadData() {
+  const el = document.getElementById('sync-status');
+  el.textContent = '⏳ 載入詞彙庫…';
+  try {
+    const [vocab, progress] = await Promise.all([
+      sb('vocabulary?select=*&order=id'),
+      sb('study_progress?user_id=eq.' + USER_ID + '&select=vocabulary_id,ease_factor,interval_days,repetitions,next_review').catch(() => [])
+    ]);
+    const progMap = {};
+    progress.forEach(p => {
+      progMap[p.vocabulary_id] = { ef: p.ease_factor, interval: p.interval_days, reps: p.repetitions, next: p.next_review };
+    });
+    DB.cards = vocab.map(v => ({ ...v, sm2: progMap[v.id] || sm2Cache[v.id] || defSm2() }));
+    DB.loaded = true;
+    DB.cards.forEach(c => { sm2Cache[c.id] = c.sm2; });
+    saveSm2Cache();
+    const now = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+    el.textContent = '✅ 已同步 ' + vocab.length + ' 筆詞彙 · ' + now;
+    refreshHome();
+  } catch (e) {
+    el.textContent = '⚠️ 無法連線，請確認網路';
+    console.error('Supabase load error:', e);
+  }
+}
+
+// ══ Supabase: Save SM-2 (async, non-blocking) ════════════════════════════
+async function upsertSm2(card) {
+  sm2Cache[card.id] = card.sm2;
+  saveSm2Cache();
+  try {
+    await sb('study_progress', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        vocabulary_id: card.id, user_id: USER_ID,
+        ease_factor: card.sm2.ef, interval_days: card.sm2.interval,
+        repetitions: card.sm2.reps, next_review: card.sm2.next || todayStr(),
+        last_reviewed: new Date().toISOString(), updated_at: new Date().toISOString()
+      })
+    });
+  } catch (e) { console.warn('SM-2 cloud sync failed (cached locally)'); }
 }
 
 // ══ SM-2 ═════════════════════════════════════════════════════════════════
@@ -504,25 +557,15 @@ function importVocab(e) {
       const src = JSON.parse(ev.target.result);
       const list = src.vocabulary;
       if (!Array.isArray(list)) throw new Error('缺少 vocabulary 陣列');
-      const d = load();
-      const map = {};
-      d.cards.forEach(c => { map[c.id] = c; });
-      let added = 0, updated = 0;
+      let added = 0;
       list.forEach((v, i) => {
-        const id = v.id || 'auto_' + i + '_' + (v.english || '').replace(/\W+/g, '_').toLowerCase().slice(0, 30);
-        if (map[id]) {
-          const ex = map[id];
-          Object.assign(ex, v);
-          ex.id = id;
-          if (!ex.sm2) ex.sm2 = defSm2();
-          updated++;
-        } else {
-          d.cards.push({ ...v, id, sm2: v.sm2 || defSm2() });
-          added++;
-        }
+        const id = v.id || 'import_' + Date.now() + '_' + i;
+        const card = { ...v, id, sm2: sm2Cache[id] || defSm2() };
+        const ci = DB.cards.findIndex(c => c.id === id);
+        if (ci >= 0) Object.assign(DB.cards[ci], card);
+        else { DB.cards.push(card); added++; }
       });
-      save(d);
-      toast('匯入完成：新增 ' + added + ' 筆，更新 ' + updated + ' 筆');
+      toast('✅ 匯入完成：' + list.length + ' 筆（新增 ' + added + ' 筆）');
       refreshHome();
     } catch (err) { toast('匯入失敗：' + err.message); }
   };
@@ -551,9 +594,9 @@ function selectType(t) {
 
 function populateCatSelect() {
   const sel = document.getElementById('f-cat');
-  const d = load();
-  const extra = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
-  const all = [...new Set([...CATS, ...extra])];
+  const base = ['RFQ & Inquiry','Negotiation','Contract & Terms','Specification',
+    'Vendor Management','Presentation & Reporting','General Business English'];
+  const all = [...new Set([...base, ...DB.cards.map(c => c.category).filter(Boolean)])];
   sel.innerHTML = all.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
 }
 
@@ -561,27 +604,21 @@ function submitAdd() {
   const en = document.getElementById('f-en').value.trim();
   const zh = document.getElementById('f-zh').value.trim();
   if (!en || !zh) { toast('英文與中文為必填'); return; }
-  const d = load();
   const id = 'manual_' + Date.now();
   const card = {
-    id,
-    type: addType,
-    english: en,
-    abbreviation: document.getElementById('f-abbr').value.trim() || undefined,
-    chinese: zh,
-    definition_en: document.getElementById('f-def').value.trim() || undefined,
+    id, type: addType, english: en, chinese: zh,
+    phonetic: document.getElementById('f-abbr').value.trim() || null,
     category: document.getElementById('f-cat').value,
-    example_sentence: document.getElementById('f-ex').value.trim() || undefined,
-    notes: document.getElementById('f-notes').value.trim() || undefined,
+    example: document.getElementById('f-ex').value.trim() || '',
+    example_zh: '',
+    tags: ['manual'],
     sm2: defSm2()
   };
-  // Remove undefined fields
-  Object.keys(card).forEach(k => card[k] === undefined && delete card[k]);
-  d.cards.push(card);
-  save(d);
-  toast('✓ 已新增：' + en);
-  // Clear form
-  ['f-en','f-abbr','f-zh','f-def','f-ex','f-notes'].forEach(id => document.getElementById(id).value = '');
+  DB.cards.push(card);
+  toast('✓ 已新增：' + en + '（本次 Session 有效，重新整理後需由 Claude 寫入 Supabase）');
+  ['f-en','f-abbr','f-zh','f-def','f-ex','f-notes'].forEach(fid => {
+    const el = document.getElementById(fid); if (el) el.value = '';
+  });
   go('s-home');
 }
 
@@ -590,9 +627,9 @@ function submitAdd() {
 let S = { queue: [], idx: 0, reviewed: 0, flipped: false, cats: [] };
 
 function startStudy() {
-  const d = load();
-  if (!d.cards.length) { toast('請先新增或匯入詞彙'); return; }
-  let pool = S.cats.length ? d.cards.filter(c => S.cats.includes(c.category)) : d.cards;
+  if (!DB.loaded) { toast('詞彙庫載入中，請稍候…'); return; }
+  if (!DB.cards.length) { toast('請先新增或匯入詞彙'); return; }
+  let pool = S.cats.length ? DB.cards.filter(c => S.cats.includes(c.category)) : DB.cards;
   const queue = pool.filter(isDueOrNew).sort(() => Math.random() - 0.5);
   if (!queue.length) { toast('今天沒有待複習的卡片 🎉'); return; }
   S = { queue, idx: 0, reviewed: 0, flipped: false, cats: S.cats };
@@ -645,20 +682,23 @@ function showCard() {
   document.getElementById('fc-hint').textContent = HINTS[c.type] || HINTS.word;
   document.getElementById('fc-front-content').style.display = '';
 
-  // Back (hidden)
+  // ── 背面（翻牌後顯示）────────────────────────────────
   document.getElementById('fc-answer').style.display = 'none';
   document.getElementById('fc-cat-b').textContent = c.category || '';
+
+  // 中文意思
   document.getElementById('fc-zh').textContent = c.chinese || '';
 
+  // 音標
   const phonEl = document.getElementById('fc-phonetic');
   if (c.phonetic) { phonEl.textContent = c.phonetic; phonEl.style.display = ''; }
   else phonEl.style.display = 'none';
 
-  const defEl = document.getElementById('fc-def-en');
-  if (c.definition_en) { defEl.textContent = c.definition_en; defEl.style.display = ''; }
-  else defEl.style.display = 'none';
+  // 英文定義欄（Supabase 無此欄，固定隱藏）
+  document.getElementById('fc-def-en').style.display = 'none';
 
-  const exSentence = c.example_sentence || c.example;
+  // 例句（英文） + 中文翻譯
+  const exSentence = c.example || c.example_sentence || '';
   const exRow = document.getElementById('fc-ex-row');
   if (exSentence) {
     document.getElementById('fc-ex-text').textContent = '"' + exSentence + '"';
@@ -668,11 +708,8 @@ function showCard() {
     exRow.style.display = '';
   } else exRow.style.display = 'none';
 
-  const notesEl = document.getElementById('fc-notes');
-  if (c.notes) {
-    document.getElementById('fc-notes-text').textContent = c.notes;
-    notesEl.style.display = '';
-  } else notesEl.style.display = 'none';
+  // 備注（Supabase 無此欄，固定隱藏）
+  document.getElementById('fc-notes').style.display = 'none';
 
   S.flipped = false;
 }
@@ -698,11 +735,11 @@ function flipCard() {
 }
 
 function rate(q) {
-  const d = load();
   const c = S.queue[S.idx];
-  const i = d.cards.findIndex(x => x.id === c.id);
-  if (i !== -1) { d.cards[i] = sm2(d.cards[i], q); c.sm2 = d.cards[i].sm2; }
-  save(d);
+  sm2(c, q);
+  const ci = DB.cards.findIndex(x => x.id === c.id);
+  if (ci !== -1) DB.cards[ci].sm2 = c.sm2;
+  upsertSm2(c);   // async，不阻塞 UI
   S.reviewed++;
   S.idx++;
   showCard();
@@ -724,30 +761,26 @@ document.addEventListener('keydown', e => {
 let bCat = 'all', bType = 'all';
 
 function renderBrowse() {
-  const d = load();
   const q = (document.getElementById('b-search')?.value || '').toLowerCase();
-  const cats = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
+  const cats = [...new Set(DB.cards.map(c => c.category).filter(Boolean))];
 
-  // Type filter
   const tf = document.getElementById('b-type-filters');
   tf.innerHTML = '';
-  [['all','全部'],['word','單字'],['phrase','片語'],['sentence_pattern','句型']].forEach(([v,l]) => {
+  [['all','全部'],['word','單字'],['phrase','片語'],['sentence_pattern','句型'],['grammar_note','文法']].forEach(([v,l]) => {
     makePill(tf, l, bType === v, () => { bType = v; renderBrowse(); });
   });
 
-  // Category filter
   const fp = document.getElementById('b-filters');
   fp.innerHTML = '';
   makePill(fp, '全部分類', bCat === 'all', () => { bCat = 'all'; renderBrowse(); });
   cats.forEach(cat => makePill(fp, cat, bCat === cat, () => { bCat = cat; renderBrowse(); }));
 
-  let list = d.cards;
+  let list = DB.cards;
   if (bType !== 'all') list = list.filter(c => c.type === bType);
-  if (bCat !== 'all') list = list.filter(c => c.category === bCat);
+  if (bCat  !== 'all') list = list.filter(c => c.category === bCat);
   if (q) list = list.filter(c =>
     (c.english || '').toLowerCase().includes(q) ||
-    (c.chinese || '').toLowerCase().includes(q) ||
-    (c.abbreviation || '').toLowerCase().includes(q)
+    (c.chinese || '').toLowerCase().includes(q)
   );
 
   document.getElementById('b-count').textContent = list.length + ' 筆詞彙';
@@ -755,28 +788,28 @@ function renderBrowse() {
 
   if (!list.length) {
     el.innerHTML = '<div class="empty-msg"><div class="empty-msg-icon">' +
-      (d.cards.length ? '🔍' : '📚') + '</div><div>' +
-      (d.cards.length ? '找不到符合的詞彙' : '尚無詞彙，請先新增或匯入') + '</div></div>';
+      (DB.cards.length ? '🔍' : '📚') + '</div><div>' +
+      (DB.cards.length ? '找不到符合的詞彙' : '正在載入詞彙庫…') + '</div></div>';
     return;
   }
 
-  const typeLabel = { word: '單字', phrase: '片語', sentence_pattern: '句型' };
+  const typeLabel = { word: '單字', phrase: '片語', sentence_pattern: '句型', grammar_note: '文法' };
 
   el.innerHTML = list.map(c => {
-    const abbr = c.abbreviation ? ' (' + esc(c.abbreviation) + ')' : '';
     const enDisplay = c.type === 'sentence_pattern'
       ? esc(c.english || '').replace(/___/g, '<u>___</u>')
       : esc(c.english || '');
     let detail = '';
-    if (c.definition_en) detail += '<div class="vcard-detail-line">' + esc(c.definition_en) + '</div>';
-    const exS = c.example_sentence || c.example;
-    if (exS) detail += '<div class="vcard-detail-line ex">"' + esc(exS) + '"</div>';
-    if (c.example_zh) detail += '<div class="vcard-detail-line notes">' + esc(c.example_zh) + '</div>';
-    if (c.notes) detail += '<div class="vcard-detail-line notes">📌 ' + esc(c.notes) + '</div>';
+    if (c.phonetic)    detail += '<div class="vcard-detail-line" style="color:var(--accent)">' + esc(c.phonetic) + '</div>';
+    const exS = c.example || c.example_sentence;
+    if (exS)           detail += '<div class="vcard-detail-line ex">"' + esc(exS) + '"</div>';
+    if (c.example_zh)  detail += '<div class="vcard-detail-line notes">' + esc(c.example_zh) + '</div>';
     return '<div class="vcard" onclick="this.classList.toggle(\'open\')">' +
       '<div class="vcard-top"><div>' +
-        '<div class="vcard-en">' + enDisplay + '<span style="color:var(--accent);font-size:.82em">' + abbr + '</span></div>' +
-        '<div class="vcard-zh">' + esc(c.chinese || '') + (c.type ? ' <span style="color:var(--muted);font-size:.75em">· ' + (typeLabel[c.type] || c.type) + '</span>' : '') + '</div>' +
+        '<div class="vcard-en">' + enDisplay + '</div>' +
+        '<div class="vcard-zh">' + esc(c.chinese || '') +
+          (c.type ? ' <span style="color:var(--muted);font-size:.75em">· ' + (typeLabel[c.type] || c.type) + '</span>' : '') +
+        '</div>' +
       '</div><div class="vcard-tag">' + esc(c.category || '') + '</div></div>' +
       (detail ? '<div class="vcard-detail">' + detail + '</div>' : '') +
     '</div>';
@@ -786,22 +819,21 @@ function renderBrowse() {
 // ══ Home ══════════════════════════════════════════════════════════════════
 
 function refreshHome() {
-  const d = load();
-  let pool = S.cats.length ? d.cards.filter(c => S.cats.includes(c.category)) : d.cards;
+  let pool = S.cats.length ? DB.cards.filter(c => S.cats.includes(c.category)) : DB.cards;
   const newN = pool.filter(isNew).length;
   const dueN = pool.filter(isDue).length;
-  document.getElementById('h-new').textContent = newN;
-  document.getElementById('h-due').textContent = dueN;
-  document.getElementById('h-total').textContent = d.cards.length;
+  document.getElementById('h-new').textContent   = newN;
+  document.getElementById('h-due').textContent   = dueN;
+  document.getElementById('h-total').textContent = DB.cards.length;
   const total = newN + dueN;
   const btn = document.getElementById('h-start');
-  btn.textContent = total ? '開始複習（' + total + ' 張）' : '今天已完成 🎉';
+  btn.textContent = total ? '開始複習（' + total + ' 張）' : (DB.loaded ? '今天已完成 🎉' : '載入中…');
   btn.disabled = !total;
 
   const fp = document.getElementById('h-filters');
-  const allCats = [...new Set(d.cards.map(c => c.category).filter(Boolean))];
+  const allCats = [...new Set(DB.cards.map(c => c.category).filter(Boolean))];
   if (!allCats.length) {
-    fp.innerHTML = '<span style="font-size:.78rem;color:var(--muted)">新增或匯入詞彙後可篩選</span>';
+    fp.innerHTML = '<span style="font-size:.78rem;color:var(--muted)">載入詞彙後顯示分類</span>';
     return;
   }
   fp.innerHTML = '';
@@ -849,51 +881,14 @@ function toast(msg, ms = 2800) {
   _toastTimer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
-// ══ Auto Sync ════════════════════════════════════════════════════════════
-
-async function autoSync() {
-  const el = document.getElementById('sync-status');
-  if (!CONFIG.vocabUrl) {
-    el.textContent = '☁️ 自動同步：未設定（上線後填入 GitHub URL）';
-    return;
-  }
-  el.textContent = '⏳ 同步中…';
-  try {
-    const r = await fetch(CONFIG.vocabUrl + '?t=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const src = await r.json();
-    const list = src.vocabulary || [];
-    const d = load();
-    const map = {};
-    d.cards.forEach(c => { map[c.id] = c; });
-    let added = 0;
-    list.forEach((v, i) => {
-      const id = v.id || 'sync_' + i + '_' + (v.english || '').replace(/\W+/g, '_').toLowerCase().slice(0, 30);
-      if (!map[id]) { d.cards.push({ ...v, id, sm2: defSm2() }); added++; }
-      else { const ex = map[id]; Object.assign(ex, v); ex.id = id; }
-    });
-    save(d);
-    const now = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-    el.textContent = '✅ 已同步' + (added ? '（新增 ' + added + ' 筆）' : '') + ' · ' + now;
-    refreshHome();
-  } catch (e) {
-    el.textContent = '⚠️ 同步失敗，使用本機資料';
-  }
-}
-
 // ══ Export ════════════════════════════════════════════════════════════════
 
 function exportVocab() {
-  const d = load();
-  if (!d.cards.length) { toast('目前沒有詞彙可匯出'); return; }
+  if (!DB.cards.length) { toast('目前沒有詞彙可匯出'); return; }
   const out = {
-    version: '1.1',
+    version: '2.0',
     exported: new Date().toISOString().slice(0, 10),
-    categories: CATS,
-    vocabulary: d.cards.map(c => {
-      const { sm2, ...rest } = c;   // 移除 SM-2 狀態，不放進 GitHub
-      return rest;
-    })
+    vocabulary: DB.cards.map(({ sm2, ...rest }) => rest)
   };
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -904,8 +899,9 @@ function exportVocab() {
 
 // ══ Init ══════════════════════════════════════════════════════════════════
 
+sm2Cache = loadSm2Cache();
 refreshHome();
-autoSync();
+loadData();
 </script>
 </body>
 </html>
