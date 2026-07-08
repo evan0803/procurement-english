@@ -212,6 +212,20 @@
       z-index: 9999; white-space: nowrap; max-width: 90vw; text-align: center;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Stage map (10-word gating) ── */
+    .stat-overflow { font-size: .62rem; color: var(--muted); margin-top: 3px; }
+    .stage-panel-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .stage-progress-label { font-size: .82rem; font-weight: 700; }
+    .streak-badge { font-size: .78rem; font-weight: 600; color: var(--orange); white-space: nowrap; }
+    .stage-map { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stage-cell {
+      width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: .68rem; font-weight: 700; color: var(--muted); background: var(--bg); border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .stage-cell.cleared { background: var(--green); color: #fff; border-color: var(--green); }
+    .stage-cell.current { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.25); }
   </style>
 </head>
 <body>
@@ -231,8 +245,19 @@
 
   <div class="stats-row">
     <div class="stat-box stat-new"><div class="stat-num" id="h-new">0</div><div class="stat-label">新卡片</div></div>
-    <div class="stat-box stat-due"><div class="stat-num" id="h-due">0</div><div class="stat-label">待複習</div></div>
+    <div class="stat-box stat-due">
+      <div class="stat-num" id="h-due">0</div><div class="stat-label">待複習</div>
+      <div class="stat-overflow" id="h-due-overflow" style="display:none"></div>
+    </div>
     <div class="stat-box stat-total"><div class="stat-num" id="h-total">0</div><div class="stat-label">總詞彙</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="stage-panel-top">
+      <div class="stage-progress-label" id="stage-progress-label"></div>
+      <div class="streak-badge" id="streak-badge"></div>
+    </div>
+    <div class="stage-map" id="stage-map"></div>
   </div>
 
   <div class="panel">
@@ -525,6 +550,127 @@ function isDue(c)   { return c.sm2?.next && c.sm2.next <= todayStr(); }
 function isDueOrNew(c) { return isNew(c) || isDue(c); }
 function defSm2()   { return { reps: 0, interval: 0, ef: 2.5, next: null }; }
 
+// ══ Stage system (10-word gating) ═══════════════════════════════════════════
+const STAGE_SIZE = 10;
+const DAILY_DUE_CAP = 20;
+const GRADUATE_REPS = 2;
+const STAGE_CLEARED_KEY = 'prcmt_stage_cleared_v1';
+const STREAK_KEY = 'prcmt_streak_v1';
+
+function isGraduated(c) { return (c.sm2?.reps || 0) >= GRADUATE_REPS; }
+
+// Sort by (created_at asc, id asc). Cards without created_at (this-session
+// manual additions not yet synced to Supabase) sort to the very end, so they
+// land in the last stage instead of disturbing existing stage boundaries.
+function getSortedCards(cards) {
+  return [...cards].sort((a, b) => {
+    const ca = a.created_at || '9999-12-31T23:59:59.999Z';
+    const cb = b.created_at || '9999-12-31T23:59:59.999Z';
+    if (ca !== cb) return ca < cb ? -1 : 1;
+    if (a.id < b.id) return -1;
+    if (a.id > b.id) return 1;
+    return 0;
+  });
+}
+
+// Cut the full sorted card list into STAGE_SIZE-sized stages (last one may be short).
+function getStages(cards) {
+  const sorted = getSortedCards(cards);
+  const stages = [];
+  for (let i = 0; i < sorted.length; i += STAGE_SIZE) stages.push(sorted.slice(i, i + STAGE_SIZE));
+  return stages;
+}
+
+// First stage that still has an ungraduated card. -1 = every stage graduated.
+function getCurrentStageIndex(stages) {
+  for (let i = 0; i < stages.length; i++) {
+    if (stages[i].some(c => !isGraduated(c))) return i;
+  }
+  return -1;
+}
+
+// Pure queue builder — no DOM / localStorage / network access, so it can be
+// unit-tested directly with plain mock data (see scratchpad stage-logic test).
+// opts: { cats: string[] (category filter, [] = all), clearedToday: boolean }
+// Returns { due, newCards, dueTotal, curIdx, stageCount, stages }
+function computeQueues(cards, opts = {}) {
+  const cats = opts.cats || [];
+  const clearedToday = !!opts.clearedToday;
+
+  const stages = getStages(cards);
+  const curIdx = getCurrentStageIndex(stages);
+
+  const pool = cats.length ? cards.filter(c => cats.includes(c.category)) : cards;
+  const poolIds = new Set(pool.map(c => c.id));
+
+  const dueAll = pool.filter(isDue).sort((a, b) => {
+    const na = a.sm2.next, nb = b.sm2.next;
+    return na < nb ? -1 : na > nb ? 1 : 0;
+  });
+  const due = dueAll.slice(0, DAILY_DUE_CAP);
+
+  let newCards = [];
+  if (curIdx >= 0 && dueAll.length <= DAILY_DUE_CAP && !clearedToday) {
+    newCards = stages[curIdx].filter(c => poolIds.has(c.id) && isNew(c)).slice(0, STAGE_SIZE);
+  }
+
+  return { due, newCards, dueTotal: dueAll.length, curIdx, stageCount: stages.length, stages };
+}
+
+// Did rating this card just finish clearing its stage (all cards now graduated)?
+// wasGraduatedBefore/isGraduatedAfter must be read relative to this one card;
+// the rest of the stage cannot change during a single rate() call.
+function didCompleteStage(stages, stageIdx, cardId, wasGraduatedBefore, isGraduatedAfter) {
+  if (stageIdx < 0 || !stages[stageIdx]) return false;
+  const othersGraduated = stages[stageIdx].filter(x => x.id !== cardId).every(isGraduated);
+  return othersGraduated && !wasGraduatedBefore && isGraduatedAfter;
+}
+
+function getStageClearedDate() {
+  try { return localStorage.getItem(STAGE_CLEARED_KEY) || null; } catch { return null; }
+}
+function setStageClearedDate(d) {
+  try { localStorage.setItem(STAGE_CLEARED_KEY, d); } catch {}
+}
+
+// Thin stateful wrapper around computeQueues() for real app use.
+function currentQueues() {
+  return computeQueues(DB.cards, { cats: S.cats, clearedToday: getStageClearedDate() === todayStr() });
+}
+
+// ══ Streak ═══════════════════════════════════════════════════════════════
+
+function isYesterday(dateStr, todayVal) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + 'T00:00:00');
+  const t = new Date(todayVal + 'T00:00:00');
+  if (isNaN(d) || isNaN(t)) return false;
+  return Math.round((t - d) / 86400000) === 1;
+}
+
+// Pure: given previous {lastStudyDate, streak} and today's date string,
+// returns the updated state. Same day = unchanged; consecutive day = +1;
+// gap (or first-ever study) = reset to 1.
+function computeStreak(prev, todayVal) {
+  const p = prev || { lastStudyDate: null, streak: 0 };
+  if (p.lastStudyDate === todayVal) return { lastStudyDate: todayVal, streak: p.streak };
+  if (isYesterday(p.lastStudyDate, todayVal)) return { lastStudyDate: todayVal, streak: p.streak + 1 };
+  return { lastStudyDate: todayVal, streak: 1 };
+}
+
+function loadStreak() {
+  try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || { lastStudyDate: null, streak: 0 }; }
+  catch { return { lastStudyDate: null, streak: 0 }; }
+}
+function saveStreak(s) {
+  try { localStorage.setItem(STREAK_KEY, JSON.stringify(s)); } catch {}
+}
+function bumpStreak() {
+  const updated = computeStreak(loadStreak(), todayStr());
+  saveStreak(updated);
+  return updated;
+}
+
 // ══ Speech ════════════════════════════════════════════════════════════════
 
 function speak(text) {
@@ -629,8 +775,8 @@ let S = { queue: [], idx: 0, reviewed: 0, flipped: false, cats: [] };
 function startStudy() {
   if (!DB.loaded) { toast('詞彙庫載入中，請稍候…'); return; }
   if (!DB.cards.length) { toast('請先新增或匯入詞彙'); return; }
-  let pool = S.cats.length ? DB.cards.filter(c => S.cats.includes(c.category)) : DB.cards;
-  const queue = pool.filter(isDueOrNew).sort(() => Math.random() - 0.5);
+  const { due, newCards } = currentQueues();
+  const queue = [...due, ...newCards].sort(() => Math.random() - 0.5);
   if (!queue.length) { toast('今天沒有待複習的卡片 🎉'); return; }
   S = { queue, idx: 0, reviewed: 0, flipped: false, cats: S.cats };
   go('s-study');
@@ -736,10 +882,23 @@ function flipCard() {
 
 function rate(q) {
   const c = S.queue[S.idx];
+
+  // Snapshot stage-completion state before this rating mutates the card.
+  const stagesBefore = getStages(DB.cards);
+  const stageIdx = stagesBefore.findIndex(st => st.some(x => x.id === c.id));
+  const wasGraduated = isGraduated(c);
+
   sm2(c, q);
   const ci = DB.cards.findIndex(x => x.id === c.id);
   if (ci !== -1) DB.cards[ci].sm2 = c.sm2;
   upsertSm2(c);   // async，不阻塞 UI
+
+  if (didCompleteStage(stagesBefore, stageIdx, c.id, wasGraduated, isGraduated(c))) {
+    setStageClearedDate(todayStr());
+    toast('🎉 第 ' + (stageIdx + 1) + ' 關過關！明天解鎖下一關', 4200);
+  }
+
+  bumpStreak();
   S.reviewed++;
   S.idx++;
   showCard();
@@ -819,16 +978,30 @@ function renderBrowse() {
 // ══ Home ══════════════════════════════════════════════════════════════════
 
 function refreshHome() {
-  let pool = S.cats.length ? DB.cards.filter(c => S.cats.includes(c.category)) : DB.cards;
-  const newN = pool.filter(isNew).length;
-  const dueN = pool.filter(isDue).length;
+  const { due, newCards, dueTotal, curIdx, stageCount } = currentQueues();
+  const newN = newCards.length;
+  const dueN = Math.min(dueTotal, DAILY_DUE_CAP);
   document.getElementById('h-new').textContent   = newN;
   document.getElementById('h-due').textContent   = dueN;
   document.getElementById('h-total').textContent = DB.cards.length;
-  const total = newN + dueN;
+
+  const overflowEl = document.getElementById('h-due-overflow');
+  if (overflowEl) {
+    if (dueTotal > DAILY_DUE_CAP) {
+      overflowEl.textContent = '另 ' + (dueTotal - DAILY_DUE_CAP) + ' 張排隊';
+      overflowEl.style.display = '';
+    } else {
+      overflowEl.textContent = '';
+      overflowEl.style.display = 'none';
+    }
+  }
+
+  const total = newN + due.length;
   const btn = document.getElementById('h-start');
   btn.textContent = total ? '開始複習（' + total + ' 張）' : (DB.loaded ? '今天已完成 🎉' : '載入中…');
   btn.disabled = !total;
+
+  renderStageMap(curIdx, stageCount);
 
   const fp = document.getElementById('h-filters');
   const allCats = [...new Set(DB.cards.map(c => c.category).filter(Boolean))];
@@ -844,6 +1017,46 @@ function refreshHome() {
       refreshHome();
     });
   });
+}
+
+// ══ Stage map rendering ══════════════════════════════════════════════════
+
+function renderStageMap(curIdx, stageCount) {
+  const mapEl = document.getElementById('stage-map');
+  const progEl = document.getElementById('stage-progress-label');
+  const streakEl = document.getElementById('streak-badge');
+  if (!mapEl) return;
+
+  if (!stageCount) {
+    mapEl.innerHTML = '';
+    if (progEl) progEl.textContent = '';
+    if (streakEl) streakEl.textContent = '';
+    return;
+  }
+
+  mapEl.innerHTML = '';
+  for (let i = 0; i < stageCount; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'stage-cell' + (curIdx === -1 || i < curIdx ? ' cleared' : i === curIdx ? ' current' : ' locked');
+    cell.textContent = i + 1;
+    mapEl.appendChild(cell);
+  }
+
+  if (progEl) {
+    if (curIdx === -1) {
+      progEl.textContent = '🎉 全部關卡已完成！';
+    } else {
+      const stages = getStages(DB.cards);
+      const stageCards = stages[curIdx] || [];
+      const graduatedCount = stageCards.filter(isGraduated).length;
+      progEl.textContent = '第 ' + (curIdx + 1) + ' 關 · ' + graduatedCount + ' / ' + stageCards.length;
+    }
+  }
+
+  if (streakEl) {
+    const st = loadStreak();
+    streakEl.textContent = st.streak > 0 ? ('🔥 連續 ' + st.streak + ' 天') : '';
+  }
 }
 
 // ══ Navigation ════════════════════════════════════════════════════════════
