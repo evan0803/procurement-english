@@ -226,6 +226,17 @@
     }
     .stage-cell.cleared { background: var(--green); color: #fff; border-color: var(--green); }
     .stage-cell.current { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.25); }
+
+    /* ── Catch-up mode & today status panel ── */
+    .catchup-status-wrap { margin-top: 10px; }
+    .catchup-status-wrap:empty { margin-top: 0; }
+    .catchup-line { font-size: .78rem; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+    .catchup-btn { font-size: .78rem; padding: 7px 12px; }
+    .catchup-active-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .catchup-badge { font-size: .78rem; font-weight: 600; color: var(--accent); }
+    .catchup-close-link { font-size: .74rem; color: var(--muted); text-decoration: underline; cursor: pointer; }
+    .today-stats-row { font-size: .8rem; color: var(--muted); margin-top: 10px; }
+    .today-stats-tomorrow { font-size: .74rem; color: var(--muted); margin-top: 3px; }
   </style>
 </head>
 <body>
@@ -258,6 +269,9 @@
       <div class="streak-badge" id="streak-badge"></div>
     </div>
     <div class="stage-map" id="stage-map"></div>
+    <div class="catchup-status-wrap" id="home-status-msg"></div>
+    <div class="today-stats-row" id="today-stats-row"></div>
+    <div class="today-stats-tomorrow" id="due-tomorrow-row"></div>
   </div>
 
   <div class="panel">
@@ -591,11 +605,14 @@ function getCurrentStageIndex(stages) {
 
 // Pure queue builder — no DOM / localStorage / network access, so it can be
 // unit-tested directly with plain mock data (see scratchpad stage-logic test).
-// opts: { cats: string[] (category filter, [] = all), clearedToday: boolean }
-// Returns { due, newCards, dueTotal, curIdx, stageCount, stages }
+// opts: { cats: string[] (category filter, [] = all), clearedToday: boolean, catchUp: boolean }
+// catchUp=true surfaces the current stage's learned-but-ungraduated, not-yet-due cards
+// as an "ahead review" tail on the due queue, so a stage can graduate the same day.
+// Returns { due, newCards, dueTotal, curIdx, stageCount, stages, aheadCount }
 function computeQueues(cards, opts = {}) {
   const cats = opts.cats || [];
   const clearedToday = !!opts.clearedToday;
+  const catchUp = !!opts.catchUp;
 
   const stages = getStages(cards);
   const curIdx = getCurrentStageIndex(stages);
@@ -607,14 +624,24 @@ function computeQueues(cards, opts = {}) {
     const na = a.sm2.next, nb = b.sm2.next;
     return na < nb ? -1 : na > nb ? 1 : 0;
   });
-  const due = dueAll.slice(0, DAILY_DUE_CAP);
+  let due = dueAll.slice(0, DAILY_DUE_CAP);
+
+  // Catch-up (趕進度): pull the current stage's learned-but-ungraduated, not-yet-due
+  // cards forward so the stage can graduate today. Never added while the due backlog
+  // is over the daily cap — clearing old reviews stays first.
+  let aheadCount = 0;
+  if (catchUp && curIdx >= 0 && dueAll.length <= DAILY_DUE_CAP) {
+    const ahead = stages[curIdx].filter(c => poolIds.has(c.id) && !isNew(c) && !isGraduated(c) && !isDue(c));
+    aheadCount = ahead.length;
+    due = [...due, ...ahead];
+  }
 
   let newCards = [];
   if (curIdx >= 0 && dueAll.length <= DAILY_DUE_CAP && !clearedToday) {
     newCards = stages[curIdx].filter(c => poolIds.has(c.id) && isNew(c)).slice(0, STAGE_SIZE);
   }
 
-  return { due, newCards, dueTotal: dueAll.length, curIdx, stageCount: stages.length, stages };
+  return { due, newCards, dueTotal: dueAll.length, curIdx, stageCount: stages.length, stages, aheadCount };
 }
 
 // Did rating this card just finish clearing its stage (all cards now graduated)?
@@ -635,7 +662,8 @@ function setStageClearedDate(d) {
 
 // Thin stateful wrapper around computeQueues() for real app use.
 function currentQueues() {
-  return computeQueues(DB.cards, { cats: S.cats, clearedToday: getStageClearedDate() === todayStr() });
+  const catchUp = isCatchUpActive();
+  return computeQueues(DB.cards, { cats: S.cats, clearedToday: getStageClearedDate() === todayStr() && !catchUp, catchUp });
 }
 
 // ══ Streak ═══════════════════════════════════════════════════════════════
@@ -887,16 +915,26 @@ function rate(q) {
   const stagesBefore = getStages(DB.cards);
   const stageIdx = stagesBefore.findIndex(st => st.some(x => x.id === c.id));
   const wasGraduated = isGraduated(c);
+  const wasNew = isNew(c); // snapshot before sm2() mutates c, for today-stats "learned" count
 
   sm2(c, q);
   const ci = DB.cards.findIndex(x => x.id === c.id);
   if (ci !== -1) DB.cards[ci].sm2 = c.sm2;
   upsertSm2(c);   // async，不阻塞 UI
 
-  if (didCompleteStage(stagesBefore, stageIdx, c.id, wasGraduated, isGraduated(c))) {
+  const stageCompleted = didCompleteStage(stagesBefore, stageIdx, c.id, wasGraduated, isGraduated(c));
+  if (stageCompleted) {
     setStageClearedDate(todayStr());
-    toast('🎉 第 ' + (stageIdx + 1) + ' 關過關！明天解鎖下一關', 4200);
+    toast(isCatchUpActive()
+      ? '🎉 第 ' + (stageIdx + 1) + ' 關過關！趕進度模式：可直接繼續下一關'
+      : '🎉 第 ' + (stageIdx + 1) + ' 關過關！明天解鎖，或在首頁點『繼續下一關』趕進度', 4200);
   }
+
+  const tStats = loadTodayStats();
+  tStats.reviewed++;
+  if (wasNew) tStats.learned++;
+  if (stageCompleted) tStats.cleared++;
+  saveTodayStats(tStats);
 
   bumpStreak();
   S.reviewed++;
@@ -978,9 +1016,9 @@ function renderBrowse() {
 // ══ Home ══════════════════════════════════════════════════════════════════
 
 function refreshHome() {
-  const { due, newCards, dueTotal, curIdx, stageCount } = currentQueues();
+  const { due, newCards, dueTotal, curIdx, stageCount, aheadCount } = currentQueues();
   const newN = newCards.length;
-  const dueN = Math.min(dueTotal, DAILY_DUE_CAP);
+  const dueN = due.length; // = min(dueTotal, cap), plus ahead-review cards while catch-up is active
   document.getElementById('h-new').textContent   = newN;
   document.getElementById('h-due').textContent   = dueN;
   document.getElementById('h-total').textContent = DB.cards.length;
@@ -1002,6 +1040,9 @@ function refreshHome() {
   btn.disabled = !total;
 
   renderStageMap(curIdx, stageCount);
+  renderHomeStatus(curIdx, dueTotal, newN, stageCount, aheadCount);
+  renderTodayStats();
+  renderDueTomorrow();
 
   const fp = document.getElementById('h-filters');
   const allCats = [...new Set(DB.cards.map(c => c.category).filter(Boolean))];
@@ -1057,6 +1098,98 @@ function renderStageMap(curIdx, stageCount) {
     const st = loadStreak();
     streakEl.textContent = st.streak > 0 ? ('🔥 連續 ' + st.streak + ' 天') : '';
   }
+}
+
+// ══ Catch-up mode & today status panel ══════════════════════════════════
+const CATCHUP_KEY = 'prcmt_catchup_v1';
+const TODAY_STATS_KEY = 'prcmt_today_v1';
+
+function isCatchUpActive() {
+  try { return localStorage.getItem(CATCHUP_KEY) === todayStr(); } catch { return false; }
+}
+function setCatchUp(on) {
+  try {
+    if (on) localStorage.setItem(CATCHUP_KEY, todayStr());
+    else localStorage.removeItem(CATCHUP_KEY);
+  } catch {}
+}
+function handleCatchUpStart() {
+  setCatchUp(true);
+  toast('⚡ 趕進度模式已開啟，新關卡解鎖！');
+  refreshHome();
+}
+function handleCatchUpStop() {
+  setCatchUp(false);
+  toast('趕進度模式已關閉');
+  refreshHome();
+}
+
+function loadTodayStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(TODAY_STATS_KEY));
+    if (s && s.date === todayStr()) return s;
+  } catch {}
+  return { date: todayStr(), reviewed: 0, learned: 0, cleared: 0 };
+}
+function saveTodayStats(s) {
+  try { localStorage.setItem(TODAY_STATS_KEY, JSON.stringify(s)); } catch {}
+}
+function dueTomorrowCount() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const tmr = d.toISOString().slice(0, 10);
+  return DB.cards.filter(c => !isNew(c) && c.sm2 && c.sm2.next <= tmr).length;
+}
+
+// Home status message: catch-up toggle, or (when no new cards today) why not.
+// Priority: catch-up active badge > has new cards (nothing to explain) >
+// all stages done (reuses existing stage-progress-label text) > due overflow >
+// today's stage cleared and locked > current stage learned but not graduated.
+function renderHomeStatus(curIdx, dueTotal, newN, stageCount, aheadCount) {
+  const el = document.getElementById('home-status-msg');
+  if (!el) return;
+  if (!stageCount) { el.innerHTML = ''; return; }
+
+  if (isCatchUpActive()) {
+    el.innerHTML =
+      '<div class="catchup-active-row">' +
+        '<span class="catchup-badge">⚡ 趕進度模式（今日）</span>' +
+        '<a href="javascript:void(0)" class="catchup-close-link" onclick="handleCatchUpStop()">關閉</a>' +
+      '</div>' +
+      (aheadCount > 0 ? '<div class="catchup-line">⚡ 提前複習 ' + aheadCount + ' 張（每字連對 2 次即過關）</div>' : '');
+    return;
+  }
+
+  if (newN > 0) { el.innerHTML = ''; return; }
+
+  if (curIdx === -1) {
+    el.innerHTML = ''; // 沿用既有的「🎉 全部關卡已完成！」（stage-progress-label 已顯示）
+  } else if (dueTotal > DAILY_DUE_CAP) {
+    el.innerHTML = '<div class="catchup-line">📚 到期 ' + dueTotal + ' 張超過每日 ' + DAILY_DUE_CAP + ' 張上限，今日先清舊帳、暫停新卡</div>';
+  } else if (getStageClearedDate() === todayStr()) {
+    el.innerHTML =
+      '<div class="catchup-line">✅ 第 ' + curIdx + ' 關已過關！新關明天解鎖</div>' +
+      '<button type="button" class="btn btn-ghost catchup-btn" onclick="handleCatchUpStart()">⚡ 繼續下一關（趕進度）</button>';
+  } else {
+    el.innerHTML =
+      '<div class="catchup-line">⏳ 第 ' + (curIdx + 1) + ' 關單字都學過了，每字連對 2 次畢業後解鎖下一關</div>' +
+      '<button type="button" class="btn btn-ghost catchup-btn" onclick="handleCatchUpStart()">⚡ 提前複習，今天過關（趕進度）</button>';
+  }
+}
+
+function renderTodayStats() {
+  const el = document.getElementById('today-stats-row');
+  if (!el) return;
+  const s = loadTodayStats();
+  let line = '今日：複習 ' + s.reviewed + ' ｜ 新學 ' + s.learned;
+  if (s.cleared > 0) line += ' ｜ 過關 ' + s.cleared;
+  el.textContent = line;
+}
+
+function renderDueTomorrow() {
+  const el = document.getElementById('due-tomorrow-row');
+  if (!el) return;
+  el.textContent = '明日到期約 ' + dueTomorrowCount() + ' 張';
 }
 
 // ══ Navigation ════════════════════════════════════════════════════════════
