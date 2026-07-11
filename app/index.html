@@ -537,7 +537,8 @@ async function loadData() {
   try {
     const [vocab, progress] = await Promise.all([
       sb('vocabulary?select=*&order=id'),
-      sb('study_progress?user_id=eq.' + USER_ID + '&select=vocabulary_id,ease_factor,interval_days,repetitions,next_review').catch(() => [])
+      sb('study_progress?user_id=eq.' + USER_ID + '&select=vocabulary_id,ease_factor,interval_days,repetitions,next_review').catch(() => []),
+      fetchTodayStatsRemote()
     ]);
     const progMap = {};
     progress.forEach(p => {
@@ -983,6 +984,7 @@ function rate(q) {
   if (wasNew) tStats.learned++;
   if (stageCompleted) tStats.cleared++;
   saveTodayStats(tStats);
+  syncTodayStatsRemote(tStats);   // async，不阻塞 UI
 
   bumpStreak();
   S.reviewed++;
@@ -1266,6 +1268,36 @@ function loadTodayStats() {
 function saveTodayStats(s) {
   try { localStorage.setItem(TODAY_STATS_KEY, JSON.stringify(s)); } catch {}
 }
+
+// Supabase: today-stats cross-device sync (best-effort, non-blocking)
+async function fetchTodayStatsRemote() {
+  try {
+    const rows = await sb('daily_stats?user_id=eq.' + USER_ID + '&stat_date=eq.' + todayStr() + '&select=*');
+    const remote = rows && rows[0];
+    if (!remote) return;
+    const local = loadTodayStats();
+    saveTodayStats({
+      date: todayStr(),
+      reviewed: Math.max(local.reviewed, remote.reviewed || 0),
+      learned: Math.max(local.learned, remote.learned || 0),
+      cleared: Math.max(local.cleared, remote.cleared || 0)
+    });
+  } catch (e) { console.warn('Today-stats cloud fetch failed (using local only)'); }
+}
+async function syncTodayStatsRemote(s) {
+  try {
+    await sb('daily_stats', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        user_id: USER_ID, stat_date: s.date,
+        reviewed: s.reviewed, learned: s.learned, cleared: s.cleared,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch (e) { console.warn('Today-stats cloud sync failed (cached locally)'); }
+}
+
 function dueTomorrowCount() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
