@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>採購英文複習</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     :root {
       --bg: #f0f4f8;
@@ -222,7 +226,7 @@
     .stage-cell {
       width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
       font-size: .68rem; font-weight: 700; color: var(--muted); background: var(--bg); border: 1px solid var(--border);
-      flex-shrink: 0;
+      flex-shrink: 0; cursor: pointer;
     }
     .stage-cell.cleared { background: var(--green); color: #fff; border-color: var(--green); }
     .stage-cell.current { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.25); }
@@ -237,6 +241,44 @@
     .catchup-close-link { font-size: .74rem; color: var(--muted); text-decoration: underline; cursor: pointer; }
     .today-stats-row { font-size: .8rem; color: var(--muted); margin-top: 10px; }
     .today-stats-tomorrow { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── 弱點特訓（功能 3）── */
+    .weakest-training-row { margin-top: 12px; }
+    .weakest-training-row:empty { margin-top: 0; }
+    .weakest-btn { font-size: .78rem; padding: 7px 12px; }
+
+    /* ── 關卡 popover（功能 2：點關卡看字／功能 4：複製這關單字給 Claude）── */
+    .popover-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55);
+      z-index: 3000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .popover-backdrop.show { display: flex; }
+    .popover-card {
+      background: var(--card); border-radius: var(--radius); width: min(92vw, 420px);
+      max-height: 80vh; display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    }
+    .popover-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 16px 18px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .popover-title-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .popover-title { font-size: 1rem; font-weight: 700; }
+    .popover-chip { font-size: .72rem; font-weight: 600; padding: 2px 9px; border-radius: 12px; white-space: nowrap; }
+    .popover-chip.st-cleared { background: var(--green); color: #fff; }
+    .popover-chip.st-current { background: var(--accent); color: #fff; }
+    .popover-chip.st-locked  { background: var(--border); color: var(--muted); }
+    .popover-close {
+      background: none; border: none; font-size: 1.2rem; line-height: 1;
+      color: var(--muted); cursor: pointer; padding: 4px 6px; flex-shrink: 0;
+    }
+    .popover-list { overflow-y: auto; padding: 4px 18px; flex: 1; }
+    .popover-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .popover-item:last-child { border-bottom: none; }
+    .popover-item-icon { flex-shrink: 0; font-size: .85rem; margin-top: 1px; }
+    .popover-item-en { font-weight: 600; font-size: .88rem; }
+    .popover-item-zh { font-size: .8rem; color: var(--muted); margin-top: 1px; }
+    .popover-foot { padding: 12px 18px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -272,6 +314,7 @@
     <div class="catchup-status-wrap" id="home-status-msg"></div>
     <div class="today-stats-row" id="today-stats-row"></div>
     <div class="today-stats-tomorrow" id="due-tomorrow-row"></div>
+    <div class="weakest-training-row" id="weakest-training-row"></div>
   </div>
 
   <div class="panel">
@@ -446,6 +489,11 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- 關卡 popover（功能 2 + 4） -->
+<div class="popover-backdrop" id="popover-backdrop" onclick="handlePopoverBackdropClick(event)">
+  <div class="popover-card" id="popover-card"></div>
+</div>
 
 
 <script>
@@ -1043,6 +1091,7 @@ function refreshHome() {
   renderHomeStatus(curIdx, dueTotal, newN, stageCount, aheadCount);
   renderTodayStats();
   renderDueTomorrow();
+  renderWeakestTraining();
 
   const fp = document.getElementById('h-filters');
   const allCats = [...new Set(DB.cards.map(c => c.category).filter(Boolean))];
@@ -1080,6 +1129,7 @@ function renderStageMap(curIdx, stageCount) {
     const cell = document.createElement('div');
     cell.className = 'stage-cell' + (curIdx === -1 || i < curIdx ? ' cleared' : i === curIdx ? ' current' : ' locked');
     cell.textContent = i + 1;
+    cell.onclick = () => openStagePopover(i);
     mapEl.appendChild(cell);
   }
 
@@ -1099,6 +1149,88 @@ function renderStageMap(curIdx, stageCount) {
     streakEl.textContent = st.streak > 0 ? ('🔥 連續 ' + st.streak + ' 天') : '';
   }
 }
+
+// ══ Stage popover（功能 2：點關卡看字／功能 4：複製這關單字給 Claude）══════════
+let _popoverStageIdx = null;
+
+function stageChipInfo(stageIdx, curIdx) {
+  if (curIdx === -1 || stageIdx < curIdx) return { cls: 'st-cleared', label: '✅ 已過' };
+  if (stageIdx === curIdx)                return { cls: 'st-current', label: '▶ 進行中' };
+  return { cls: 'st-locked', label: '🔒 未解鎖' };
+}
+
+function cardStatusIcon(c) {
+  if (isNew(c)) return '🆕';
+  if (isGraduated(c)) return '✅';
+  return '📖';
+}
+
+// Pure：組出可直接貼給 Claude 的複製文字（popover 複製鈕與過關禮共用，方便單元測試）。
+function buildStageCopyText(stageIdx, cards) {
+  const stages = getStages(cards);
+  const stageCards = stages[stageIdx] || [];
+  const lines = ['請用 materials-gen 幫我為以下採購英文詞彙產生練習教材（填空題＋情境對話）：'];
+  stageCards.forEach((c, i) => lines.push((i + 1) + '. ' + (c.english || '') + ' — ' + (c.chinese || '')));
+  return lines.join('\n');
+}
+
+function openStagePopover(stageIdx) {
+  const stages = getStages(DB.cards);
+  const stageCards = stages[stageIdx] || [];
+  if (!stageCards.length) return;
+  const curIdx = getCurrentStageIndex(stages);
+  const chip = stageChipInfo(stageIdx, curIdx);
+
+  _popoverStageIdx = stageIdx;
+
+  const itemsHtml = stageCards.map(c =>
+    '<div class="popover-item">' +
+      '<span class="popover-item-icon">' + cardStatusIcon(c) + '</span>' +
+      '<div><div class="popover-item-en">' + esc(c.english || '') + '</div>' +
+      '<div class="popover-item-zh">' + esc(c.chinese || '') + '</div></div>' +
+    '</div>'
+  ).join('');
+
+  document.getElementById('popover-card').innerHTML =
+    '<div class="popover-head">' +
+      '<div class="popover-title-wrap">' +
+        '<span class="popover-title">第 ' + (stageIdx + 1) + ' 關</span>' +
+        '<span class="popover-chip ' + chip.cls + '">' + chip.label + '</span>' +
+      '</div>' +
+      '<button type="button" class="popover-close" onclick="closeStagePopover()">✕</button>' +
+    '</div>' +
+    '<div class="popover-list">' + itemsHtml + '</div>' +
+    '<div class="popover-foot">' +
+      '<button type="button" class="btn btn-primary btn-block popover-copy-btn" onclick="copyStageWords()">📋 複製這關單字</button>' +
+    '</div>';
+
+  document.getElementById('popover-backdrop').classList.add('show');
+}
+
+function closeStagePopover() {
+  document.getElementById('popover-backdrop').classList.remove('show');
+  _popoverStageIdx = null;
+}
+
+function handlePopoverBackdropClick(e) {
+  if (e.target.id === 'popover-backdrop') closeStagePopover();
+}
+
+function copyStageWords() {
+  if (_popoverStageIdx === null) return;
+  const text = buildStageCopyText(_popoverStageIdx, DB.cards);
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    toast('此瀏覽器不支援自動複製，請手動選取文字');
+    return;
+  }
+  navigator.clipboard.writeText(text)
+    .then(() => toast('已複製，貼給 Claude 產練習即可'))
+    .catch(() => toast('複製失敗，請手動選取文字'));
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && _popoverStageIdx !== null) closeStagePopover();
+});
 
 // ══ Catch-up mode & today status panel ══════════════════════════════════
 const CATCHUP_KEY = 'prcmt_catchup_v1';
@@ -1169,6 +1301,7 @@ function renderHomeStatus(curIdx, dueTotal, newN, stageCount, aheadCount) {
   } else if (getStageClearedDate() === todayStr()) {
     el.innerHTML =
       '<div class="catchup-line">✅ 第 ' + curIdx + ' 關已過關！新關明天解鎖</div>' +
+      '<div class="catchup-line">🎁 過關禮：點上方第 ' + curIdx + ' 關格子 → 複製單字 → 貼給 Claude 產練習</div>' +
       '<button type="button" class="btn btn-ghost catchup-btn" onclick="handleCatchUpStart()">⚡ 繼續下一關（趕進度）</button>';
   } else {
     el.innerHTML =
@@ -1190,6 +1323,41 @@ function renderDueTomorrow() {
   const el = document.getElementById('due-tomorrow-row');
   if (!el) return;
   el.textContent = '明日到期約 ' + dueTomorrowCount() + ' 張';
+}
+
+// ══ 弱點特訓（功能 3）═══════════════════════════════════════════════════════
+
+// Pure：只取已開始學習的卡（排除 isNew），依 ef 升冪 → reps 升冪 → next 升冪排序，取前 n 張。
+function getWeakestCards(cards, n = 5) {
+  return cards
+    .filter(c => !isNew(c))
+    .sort((a, b) => {
+      const efA = a.sm2?.ef ?? 2.5, efB = b.sm2?.ef ?? 2.5;
+      if (efA !== efB) return efA - efB;
+      const repsA = a.sm2?.reps ?? 0, repsB = b.sm2?.reps ?? 0;
+      if (repsA !== repsB) return repsA - repsB;
+      const nextA = a.sm2?.next || '', nextB = b.sm2?.next || '';
+      return nextA < nextB ? -1 : nextA > nextB ? 1 : 0;
+    })
+    .slice(0, n);
+}
+
+function renderWeakestTraining() {
+  const el = document.getElementById('weakest-training-row');
+  if (!el) return;
+  const weakest = getWeakestCards(DB.cards, 5);
+  if (!weakest.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<button type="button" class="btn btn-ghost weakest-btn" onclick="startWeakestTraining()">🎯 弱點特訓（' + weakest.length + ' 字）</button>';
+}
+
+// 沿用既有複習 session 機制（S + go('s-study') + showCard()），評分照常走 SM-2 與 Supabase 同步。
+function startWeakestTraining() {
+  if (!DB.loaded) { toast('詞彙庫載入中，請稍候…'); return; }
+  const weakest = getWeakestCards(DB.cards, 5);
+  if (!weakest.length) { toast('目前沒有可特訓的單字（需已學習過的卡片）'); return; }
+  S = { queue: [...weakest], idx: 0, reviewed: 0, flipped: false, cats: S.cats };
+  go('s-study');
+  showCard();
 }
 
 // ══ Navigation ════════════════════════════════════════════════════════════
@@ -1248,6 +1416,13 @@ function exportVocab() {
 sm2Cache = loadSm2Cache();
 refreshHome();
 loadData();
+
+// ══ PWA：Service Worker 註冊（僅 https 或 localhost，file:// 跳過）══════════
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  try {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW 註冊失敗', err));
+  } catch (err) { console.warn('SW 註冊例外', err); }
+}
 </script>
 </body>
 </html>
